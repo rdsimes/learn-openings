@@ -91,6 +91,11 @@ export class OpeningManager {
     }
 
     resetBoardTitle() {
+        // Don't reset title if we're in the middle of playing an opening
+        if (this.isPlaying) {
+            return;
+        }
+        
         const titleElement = document.querySelector('.board-section h1');
         if (titleElement) {
             titleElement.textContent = 'Interactive Chess Board';
@@ -104,7 +109,7 @@ export class OpeningManager {
 
         this.isPlaying = true;
         
-        // Reset the game first
+        // Reset the game first (title won't reset due to isPlaying flag)
         this.chessBoardManager.reset();
         
         // Update UI to show opening is being played
