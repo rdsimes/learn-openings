@@ -32,6 +32,88 @@ let selectedLine = null;
 let game = null;
 let board = null;
 
+// Update game status
+function updateStatus() {
+    let status = '';
+    
+    if (game.isGameOver()) {
+        if (game.isCheckmate()) {
+            status = 'Game over - ' + (game.turn() === 'b' ? 'White' : 'Black') + ' wins by checkmate!';
+        } else if (game.isDraw()) {
+            if (game.isStalemate()) {
+                status = 'Game over - Draw by stalemate';
+            } else if (game.isThreefoldRepetition()) {
+                status = 'Game over - Draw by threefold repetition';
+            } else if (game.isInsufficientMaterial()) {
+                status = 'Game over - Draw by insufficient material';
+            } else {
+                status = 'Game over - Draw by 50-move rule';
+            }
+        }
+    } else {
+        let turn = game.turn() === 'w' ? 'White' : 'Black';
+        if (game.isCheck()) {
+            status = turn + ' is in check';
+        } else {
+            status = turn + ' to move';
+        }
+    }
+
+    document.getElementById('status').textContent = status;
+    
+    // Update game info
+    let gameInfo = `Move: ${Math.ceil(game.history().length / 2)}`;
+    if (game.isCheck()) gameInfo += ' | CHECK!';
+    document.getElementById('gameInfo').textContent = gameInfo;
+    
+    // Update undo button
+    document.getElementById('undoBtn').disabled = game.history().length === 0;
+}
+
+// Update move history display
+function updateMoveHistory() {
+    let history = game.history({ verbose: true });
+    let movesDisplay = '';
+    
+    if (history.length === 0) {
+        movesDisplay = 'Game started';
+    } else {
+        for (let i = 0; i < history.length; i += 2) {
+            let moveNum = Math.floor(i / 2) + 1;
+            let whiteMove = history[i].san;
+            let blackMove = history[i + 1] ? history[i + 1].san : '';
+            movesDisplay += `${moveNum}. ${whiteMove} ${blackMove}<br>`;
+        }
+    }
+    
+    document.getElementById('moves').innerHTML = movesDisplay;
+    
+    // Auto-scroll to bottom of move history during opening playback
+    const moveHistoryElement = document.getElementById('moveHistory');
+    moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
+}
+
+// Reset the game
+function resetGame() {
+    game = new Chess();
+    board.position('start');
+    updateStatus();
+    updateMoveHistory();
+}
+
+// Flip the board
+function flipBoard() {
+    board.flip();
+}
+
+// Undo the last move
+function undoMove() {
+    game.undo();
+    board.position(game.fen());
+    updateStatus();
+    updateMoveHistory();
+}
+
 // Wait for DOM to be ready (since we can't use jQuery in modules easily)
 document.addEventListener('DOMContentLoaded', function() {
     // Check if required dependencies are available
@@ -48,20 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize chess game and board
     game = new Chess();
     board = null;
-
-    // Configuration for the chess board
-    let config = {
-        draggable: true,
-        position: 'start',
-        onDragStart: onDragStart,
-        onDrop: onDrop,
-        onSnapEnd: onSnapEnd,
-        pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
-    };
-
-    // Initialize the board
-    board = Chessboard('chessboard', config);
-    updateStatus();
 
     // Prevent dragging pieces when it's not the player's turn
     function onDragStart(source, piece, position, orientation) {
@@ -101,83 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
         board.position(game.fen());
     }
 
-    // Update game status
-    function updateStatus() {
-        let status = '';
-        
-        if (game.isGameOver()) {
-            if (game.isCheckmate()) {
-                status = 'Game over - ' + (game.turn() === 'b' ? 'White' : 'Black') + ' wins by checkmate!';
-            } else if (game.isDraw()) {
-                if (game.isStalemate()) {
-                    status = 'Game over - Draw by stalemate';
-                } else if (game.isThreefoldRepetition()) {
-                    status = 'Game over - Draw by threefold repetition';
-                } else if (game.isInsufficientMaterial()) {
-                    status = 'Game over - Draw by insufficient material';
-                } else {
-                    status = 'Game over - Draw by 50-move rule';
-                }
-            }
-        } else {
-            let turn = game.turn() === 'w' ? 'White' : 'Black';
-            if (game.isCheck()) {
-                status = turn + ' is in check';
-            } else {
-                status = turn + ' to move';
-            }
-        }
+    // Configuration for the chess board
+    let config = {
+        draggable: true,
+        position: 'start',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd,
+        pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
+    };
 
-        document.getElementById('status').textContent = status;
-        
-        // Update game info
-        let gameInfo = `Move: ${Math.ceil(game.history().length / 2)}`;
-        if (game.isCheck()) gameInfo += ' | CHECK!';
-        document.getElementById('gameInfo').textContent = gameInfo;
-        
-        // Update undo button
-        document.getElementById('undoBtn').disabled = game.history().length === 0;
-    }
-
-    // Update move history display
-    function updateMoveHistory() {
-        let history = game.history({ verbose: true });
-        let movesDisplay = '';
-        
-        if (history.length === 0) {
-            movesDisplay = 'Game started';
-        } else {
-            for (let i = 0; i < history.length; i += 2) {
-                let moveNum = Math.floor(i / 2) + 1;
-                let whiteMove = history[i].san;
-                let blackMove = history[i + 1] ? history[i + 1].san : '';
-                movesDisplay += `${moveNum}. ${whiteMove} ${blackMove}<br>`;
-            }
-        }
-        
-        document.getElementById('moves').innerHTML = movesDisplay;
-    }
-
-    // Reset the game
-    function resetGame() {
-        game = new Chess();
-        board.position('start');
-        updateStatus();
-        updateMoveHistory();
-    }
-
-    // Flip the board
-    function flipBoard() {
-        board.flip();
-    }
-
-    // Undo the last move
-    function undoMove() {
-        game.undo();
-        board.position(game.fen());
-        updateStatus();
-        updateMoveHistory();
-    }
+    // Initialize the board
+    board = Chessboard('chessboard', config);
+    updateStatus();
 
     // Make functions globally available for onclick handlers
     window.resetGame = resetGame;
@@ -253,6 +257,9 @@ function playOpening() {
     // Reset the game first
     resetGame();
     
+    // Update UI to show opening is being played
+    document.getElementById('status').textContent = 'Playing opening...';
+    
     // Get the moves for the selected opening
     const moves = openingBook[selectedOpening][selectedLine];
     const moveList = moves.split(/\d+\.\s*/).filter(move => move.trim());
@@ -266,10 +273,11 @@ function playOpening() {
             // Play white move
             if (movePair[0]) {
                 try {
-                    game.move(movePair[0]);
+                    const move = game.move(movePair[0]);
                     board.position(game.fen());
                     updateStatus();
                     updateMoveHistory();
+                    console.log(`Played white move: ${move.san}`);
                 } catch (error) {
                     console.error('Error playing white move:', movePair[0], error);
                 }
@@ -279,10 +287,11 @@ function playOpening() {
             setTimeout(() => {
                 if (movePair[1]) {
                     try {
-                        game.move(movePair[1]);
+                        const move = game.move(movePair[1]);
                         board.position(game.fen());
                         updateStatus();
                         updateMoveHistory();
+                        console.log(`Played black move: ${move.san}`);
                     } catch (error) {
                         console.error('Error playing black move:', movePair[1], error);
                     }
@@ -291,6 +300,10 @@ function playOpening() {
                 moveIndex++;
                 if (moveIndex < moveList.length) {
                     setTimeout(playNextMove, 800);
+                } else {
+                    // Opening playback complete
+                    document.getElementById('status').textContent = 
+                        `Opening complete - ${game.turn() === 'w' ? 'White' : 'Black'} to move`;
                 }
             }, 400);
         }
