@@ -73,6 +73,7 @@ export class ChessBoardManager {
         this.game = new Chess();
         this.board.position('start');
         this.onGameStateChanged?.();
+        this.onGameReset?.();
     }
 
     flip() {

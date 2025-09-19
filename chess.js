@@ -26,6 +26,9 @@ class ChessApplication {
             this.openingManager = new OpeningManager(this.chessBoardManager, this.uiManager);
             await this.openingManager.initialize();
 
+            // Connect board reset event to opening manager
+            this.chessBoardManager.onGameReset = () => this.openingManager.resetBoardTitle();
+
             // Make functions globally available for onclick handlers
             this.exposeGlobalFunctions();
 

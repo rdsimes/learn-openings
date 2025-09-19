@@ -71,11 +71,30 @@ export class OpeningManager {
         this.selectedOpening = opening;
         this.selectedLine = line;
         
+        // Update board title
+        this.updateBoardTitle(opening, line);
+        
         // Update UI
         this.uiManager.enablePlayButton();
         this.uiManager.setGameInfo(
             `Selected: ${openingNames[opening]} - ${this.lineNames[line] || line}`
         );
+    }
+
+    updateBoardTitle(opening, line) {
+        const titleElement = document.querySelector('.board-section h1');
+        if (titleElement) {
+            const openingDisplayName = openingNames[opening] || opening;
+            const lineDisplayName = this.lineNames[line] || line;
+            titleElement.textContent = `${openingDisplayName} - ${lineDisplayName}`;
+        }
+    }
+
+    resetBoardTitle() {
+        const titleElement = document.querySelector('.board-section h1');
+        if (titleElement) {
+            titleElement.textContent = 'Interactive Chess Board';
+        }
     }
 
     async playOpening() {
