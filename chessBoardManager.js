@@ -1,0 +1,124 @@
+// Chess board management class for better encapsulation and maintainability
+import { Chess } from './node_modules/chess.js/dist/esm/chess.js';
+
+export class ChessBoardManager {
+    constructor() {
+        this.game = null;
+        this.board = null;
+        this.config = null;
+    }
+
+    async initialize(boardElementId) {
+        // Check dependencies
+        if (typeof Chessboard === 'undefined') {
+            throw new Error('Chessboard.js library not found');
+        }
+
+        // Initialize game
+        this.game = new Chess();
+        
+        // Setup board configuration
+        this.config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: this.onDragStart.bind(this),
+            onDrop: this.onDrop.bind(this),
+            onSnapEnd: this.onSnapEnd.bind(this),
+            pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
+        };
+
+        // Create board
+        this.board = Chessboard(boardElementId, this.config);
+        return this;
+    }
+
+    onDragStart(source, piece, position, orientation) {
+        // Do not pick up pieces if the game is over
+        if (this.game.isGameOver()) return false;
+
+        // Only pick up pieces for the side to move
+        if ((this.game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (this.game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            return false;
+        }
+        return true;
+    }
+
+    onDrop(source, target) {
+        try {
+            const move = this.game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // Always promote to a queen for simplicity
+            });
+
+            // Illegal move
+            if (move === null) return 'snapback';
+
+            // Notify of move made (could be enhanced with events)
+            this.onMoveCompleted?.(move);
+            return true;
+        } catch (error) {
+            console.error('Move error:', error);
+            return 'snapback';
+        }
+    }
+
+    onSnapEnd() {
+        this.board.position(this.game.fen());
+    }
+
+    // Game control methods
+    reset() {
+        this.game = new Chess();
+        this.board.position('start');
+        this.onGameStateChanged?.();
+    }
+
+    flip() {
+        this.board.flip();
+    }
+
+    undo() {
+        const undoResult = this.game.undo();
+        if (undoResult) {
+            this.board.position(this.game.fen());
+            this.onGameStateChanged?.();
+        }
+        return undoResult;
+    }
+
+    makeMove(moveNotation) {
+        const move = this.game.move(moveNotation);
+        if (move) {
+            this.board.position(this.game.fen());
+            this.onMoveCompleted?.(move);
+        }
+        return move;
+    }
+
+    // Game state accessors
+    getGame() {
+        return this.game;
+    }
+
+    getBoard() {
+        return this.board;
+    }
+
+    getFen() {
+        return this.game.fen();
+    }
+
+    getHistory(options) {
+        return this.game.history(options);
+    }
+
+    isGameOver() {
+        return this.game.isGameOver();
+    }
+
+    // Event handlers (can be set from outside)
+    onMoveCompleted = null;
+    onGameStateChanged = null;
+}

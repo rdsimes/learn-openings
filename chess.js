@@ -1,305 +1,75 @@
-import { Chess } from './node_modules/chess.js/dist/esm/chess.js';
-import { initializeOpeningBook, openingNames, getOpeningBook, getLineNames } from './openingBook.js';
+import { ChessBoardManager } from './chessBoardManager.js';
+import { ChessUIManager } from './chessUIManager.js';
+import { OpeningManager } from './openingManager.js';
 
-// Global variables accessible to all functions
-let selectedOpening = null;
-let selectedLine = null;
-let game = null;
-let board = null;
-let openingBook = {};
-let lineNames = {};
-
-// Update game status
-function updateStatus() {
-    let status = '';
-    
-    if (game.isGameOver()) {
-        if (game.isCheckmate()) {
-            status = 'Game over - ' + (game.turn() === 'b' ? 'White' : 'Black') + ' wins by checkmate!';
-        } else if (game.isDraw()) {
-            if (game.isStalemate()) {
-                status = 'Game over - Draw by stalemate';
-            } else if (game.isThreefoldRepetition()) {
-                status = 'Game over - Draw by threefold repetition';
-            } else if (game.isInsufficientMaterial()) {
-                status = 'Game over - Draw by insufficient material';
-            } else {
-                status = 'Game over - Draw by 50-move rule';
-            }
-        }
-    } else {
-        let turn = game.turn() === 'w' ? 'White' : 'Black';
-        if (game.isCheck()) {
-            status = turn + ' is in check';
-        } else {
-            status = turn + ' to move';
-        }
+// Application class for better organization
+class ChessApplication {
+    constructor() {
+        this.chessBoardManager = null;
+        this.uiManager = null;
+        this.openingManager = null;
     }
 
-    document.getElementById('status').textContent = status;
-    
-    // Update game info
-    let gameInfo = `Move: ${Math.ceil(game.history().length / 2)}`;
-    if (game.isCheck()) gameInfo += ' | CHECK!';
-    document.getElementById('gameInfo').textContent = gameInfo;
-    
-    // Update undo button
-    document.getElementById('undoBtn').disabled = game.history().length === 0;
-}
-
-// Update move history display
-function updateMoveHistory() {
-    let history = game.history({ verbose: true });
-    let movesDisplay = '';
-    
-    if (history.length === 0) {
-        movesDisplay = 'Game started';
-    } else {
-        for (let i = 0; i < history.length; i += 2) {
-            let moveNum = Math.floor(i / 2) + 1;
-            let whiteMove = history[i].san;
-            let blackMove = history[i + 1] ? history[i + 1].san : '';
-            movesDisplay += `${moveNum}. ${whiteMove} ${blackMove}<br>`;
-        }
-    }
-    
-    document.getElementById('moves').innerHTML = movesDisplay;
-    
-    // Auto-scroll to bottom of move history during opening playback
-    const moveHistoryElement = document.getElementById('moveHistory');
-    moveHistoryElement.scrollTop = moveHistoryElement.scrollHeight;
-}
-
-// Reset the game
-function resetGame() {
-    game = new Chess();
-    board.position('start');
-    updateStatus();
-    updateMoveHistory();
-}
-
-// Flip the board
-function flipBoard() {
-    board.flip();
-}
-
-// Undo the last move
-function undoMove() {
-    game.undo();
-    board.position(game.fen());
-    updateStatus();
-    updateMoveHistory();
-}
-
-// Wait for DOM to be ready (since we can't use jQuery in modules easily)
-document.addEventListener('DOMContentLoaded', async function() {
-    // Check if required dependencies are available
-    if (typeof $ === 'undefined') {
-        console.error('jQuery not found. Make sure it is loaded.');
-        return;
-    }
-    
-    if (typeof Chessboard === 'undefined') {
-        console.error('Chessboard.js not found. Make sure it is loaded.');
-        return;
-    }
-
-    // Initialize chess game and board
-    game = new Chess();
-    board = null;
-
-    // Load opening book from PGN files
-    try {
-        console.log('Initializing opening book...');
-        openingBook = await initializeOpeningBook();
-        lineNames = getLineNames();
-        console.log(openingBook);
-        console.log(lineNames);
-        
-        
-        // Update the UI to reflect the loaded variations
-        updateOpeningMenu();
-    } catch (error) {
-        console.error('Failed to initialize opening book:', error);
-        document.getElementById('status').textContent = 'Error: Could not load opening book from PGN files';
-        document.getElementById('playBtn').disabled = true;
-    }
-
-    // Prevent dragging pieces when it's not the player's turn
-    function onDragStart(source, piece, position, orientation) {
-        // Do not pick up pieces if the game is over
-        if (game.isGameOver()) return false;
-
-        // Only pick up pieces for the side to move
-        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-            return false;
-        }
-    }
-
-    // Handle piece drop
-    function onDrop(source, target) {
-        // See if the move is legal
+    async initialize() {
         try {
-            let move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q' // Always promote to a queen for simplicity
-            });
+            // Check if required dependencies are available
+            this.checkDependencies();
 
-            // Illegal move
-            if (move === null) return 'snapback';
+            // Initialize chess board manager
+            this.chessBoardManager = new ChessBoardManager();
+            await this.chessBoardManager.initialize('chessboard');
 
-            updateStatus();
-            updateMoveHistory();
+            // Initialize UI manager
+            this.uiManager = new ChessUIManager(this.chessBoardManager);
+
+            // Initialize opening manager
+            this.openingManager = new OpeningManager(this.chessBoardManager, this.uiManager);
+            await this.openingManager.initialize();
+
+            // Make functions globally available for onclick handlers
+            this.exposeGlobalFunctions();
+
+            console.log('✅ Chess application initialized successfully');
+            
         } catch (error) {
-            console.error('Move error:', error);
-            return 'snapback';
+            console.error('Failed to initialize chess application:', error);
+            throw error;
         }
     }
 
-    // Update the board position after the piece snap
-    function onSnapEnd() {
-        board.position(game.fen());
+    checkDependencies() {
+        if (typeof $ === 'undefined') {
+            throw new Error('jQuery not found. Make sure it is loaded.');
+        }
+        
+        if (typeof Chessboard === 'undefined') {
+            throw new Error('Chessboard.js not found. Make sure it is loaded.');
+        }
     }
 
-    // Configuration for the chess board
-    let config = {
-        draggable: true,
-        position: 'start',
-        onDragStart: onDragStart,
-        onDrop: onDrop,
-        onSnapEnd: onSnapEnd,
-        pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
-    };
+    exposeGlobalFunctions() {
+        // Expose methods for HTML onclick handlers
+        window.resetGame = () => this.chessBoardManager.reset();
+        window.flipBoard = () => this.chessBoardManager.flip();
+        window.undoMove = () => this.chessBoardManager.undo();
+        window.playOpening = () => this.openingManager.playOpening();
+        window.toggleCategory = (categoryId) => this.openingManager.toggleCategory(categoryId);
+    }
+}
 
-    // Initialize the board
-    board = Chessboard('chessboard', config);
-    updateStatus();
-
-    // Make functions globally available for onclick handlers
-    window.resetGame = resetGame;
-    window.flipBoard = flipBoard;
-    window.undoMove = undoMove;
-    window.playOpening = playOpening;
-    window.toggleCategory = toggleCategory;
-
-    // Note: Event listeners for opening selection are now added dynamically in updateOpeningMenu()
+// Initialize application when DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    const app = new ChessApplication();
+    
+    try {
+        await app.initialize();
+    } catch (error) {
+        console.error('Application initialization failed:', error);
+        
+        // Show error in UI if possible
+        const statusElement = document.getElementById('status');
+        if (statusElement) {
+            statusElement.textContent = 'Application failed to load: ' + error.message;
+        }
+    }
 });
-
-// Toggle opening category expansion
-function toggleCategory(categoryId) {
-    const lines = document.getElementById(categoryId + '-lines');
-    lines.classList.toggle('expanded');
-}
-
-// Select an opening line
-function selectOpening(opening, line, element) {
-    // Remove previous selection
-    document.querySelectorAll('.opening-line').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    // Add selection to clicked element
-    element.classList.add('selected');
-    
-    // Store selection
-    selectedOpening = opening;
-    selectedLine = line;
-    
-    // Enable play button
-    document.getElementById('playBtn').disabled = false;
-    
-    // Update status using imported constants
-    document.getElementById('gameInfo').textContent = 
-        `Selected: ${openingNames[opening]} - ${lineNames[line] || line}`;
-}
-
-// Play the selected opening
-function playOpening() {
-    if (!selectedOpening || !selectedLine) return;
-    
-    // Reset the game first
-    resetGame();
-    
-    // Update UI to show opening is being played
-    document.getElementById('status').textContent = 'Playing opening...';
-    
-    // Get the moves for the selected opening
-    const moves = openingBook[selectedOpening][selectedLine];
-    const moveList = moves.split(/\d+\.\s*/).filter(move => move.trim());
-    
-    // Play moves with delay for visualization
-    let moveIndex = 0;
-    const playNextMove = () => {
-        if (moveIndex < moveList.length) {
-            const movePair = moveList[moveIndex].trim().split(/\s+/);
-            
-            // Play white move
-            if (movePair[0]) {
-                try {
-                    const move = game.move(movePair[0]);
-                    board.position(game.fen());
-                    updateStatus();
-                    updateMoveHistory();
-                    console.log(`Played white move: ${move.san}`);
-                } catch (error) {
-                    console.error('Error playing white move:', movePair[0], error);
-                }
-            }
-            
-            // Play black move after a short delay
-            setTimeout(() => {
-                if (movePair[1]) {
-                    try {
-                        const move = game.move(movePair[1]);
-                        board.position(game.fen());
-                        updateStatus();
-                        updateMoveHistory();
-                        console.log(`Played black move: ${move.san}`);
-                    } catch (error) {
-                        console.error('Error playing black move:', movePair[1], error);
-                    }
-                }
-                
-                moveIndex++;
-                if (moveIndex < moveList.length) {
-                    setTimeout(playNextMove, 800);
-                } else {
-                    // Opening playback complete
-                    document.getElementById('status').textContent = 
-                        `Opening complete - ${game.turn() === 'w' ? 'White' : 'Black'} to move`;
-                }
-            }, 400);
-        }
-    };
-    
-    // Start playing moves
-    setTimeout(playNextMove, 500);
-}
-
-// Update the opening menu based on loaded data
-function updateOpeningMenu() {
-    Object.keys(openingBook).forEach(openingKey => {
-        const linesContainer = document.getElementById(openingKey + '-lines');
-        if (linesContainer) {
-            // Clear existing lines
-            linesContainer.innerHTML = '';
-            
-            // Add lines from the loaded opening book
-            Object.keys(openingBook[openingKey]).forEach(lineKey => {
-                const lineDiv = document.createElement('div');
-                lineDiv.className = 'opening-line';
-                lineDiv.setAttribute('data-opening', openingKey);
-                lineDiv.setAttribute('data-line', lineKey);
-                lineDiv.textContent = lineNames[lineKey] || lineKey;
-                
-                lineDiv.addEventListener('click', function() {
-                    selectOpening(this.dataset.opening, this.dataset.line, this);
-                });
-                
-                linesContainer.appendChild(lineDiv);
-            });
-        }
-    });
-}
