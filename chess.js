@@ -26,8 +26,11 @@ const openingBook = {
     }
 };
 
+// Global variables accessible to all functions
 let selectedOpening = null;
 let selectedLine = null;
+let game = null;
+let board = null;
 
 // Wait for DOM to be ready (since we can't use jQuery in modules easily)
 document.addEventListener('DOMContentLoaded', function() {
@@ -43,8 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize chess game and board
-    let game = new Chess();
-    let board = null;
+    game = new Chess();
+    board = null;
 
     // Configuration for the chess board
     let config = {
