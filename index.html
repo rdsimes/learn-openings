@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chess Board</title>
+    
+    <!-- Chessboard.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chess-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+        }
+
+        .opening-menu {
+            width: 300px;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .opening-menu h3 {
+            margin-top: 0;
+            color: #4a4a4a;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .opening-category {
+            margin-bottom: 20px;
+        }
+
+        .opening-category h4 {
+            margin: 0 0 10px 0;
+            color: #5a5a5a;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            background: #e9ecef;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+
+        .opening-category h4:hover {
+            background: #dee2e6;
+        }
+
+        .opening-lines {
+            margin-left: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .opening-lines.expanded {
+            max-height: 500px;
+        }
+
+        .opening-line {
+            padding: 5px 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.2s ease;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+
+        .opening-line:hover {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+
+        .opening-line.selected {
+            background: #667eea;
+            color: white;
+            border-left-color: #4a5ed7;
+        }
+
+        .board-section {
+            flex: 1;
+            text-align: center;
+        }
+
+        #chessboard {
+            margin: 20px auto;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4a4a4a;
+        }
+
+        .game-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        h1 {
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+
+        .move-history {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chess-container">
+        <!-- Opening Selection Menu -->
+        <div class="opening-menu">
+            <h3>📚 Opening Book</h3>
+            
+            <div class="opening-category">
+                <h4 onclick="toggleCategory('italian')">🇮🇹 Italian Game</h4>
+                <div class="opening-lines" id="italian-lines">
+                    <div class="opening-line" data-opening="italian" data-line="classical">Classical Variation</div>
+                    <div class="opening-line" data-opening="italian" data-line="aggressive">Bird's Attack</div>
+                    <div class="opening-line" data-opening="italian" data-line="modern">Modern Defense</div>
+                    <div class="opening-line" data-opening="italian" data-line="knights">Two Knights Defense</div>
+                    <div class="opening-line" data-opening="italian" data-line="hungarian">Hungarian Defense</div>
+                </div>
+            </div>
+
+            <div class="opening-category">
+                <h4 onclick="toggleCategory('ruylopez')">🇪🇸 Ruy Lopez</h4>
+                <div class="opening-lines" id="ruylopez-lines">
+                    <div class="opening-line" data-opening="ruylopez" data-line="closed">Closed Defense</div>
+                    <div class="opening-line" data-opening="ruylopez" data-line="berlin">Berlin Defense</div>
+                    <div class="opening-line" data-opening="ruylopez" data-line="morphy">Morphy Defense</div>
+                </div>
+            </div>
+
+            <div class="opening-category">
+                <h4 onclick="toggleCategory('queens')">👑 Queen's Gambit</h4>
+                <div class="opening-lines" id="queens-lines">
+                    <div class="opening-line" data-opening="queens" data-line="declined">QGD Orthodox</div>
+                    <div class="opening-line" data-opening="queens" data-line="accepted">QGA</div>
+                    <div class="opening-line" data-opening="queens" data-line="slav">Slav Defense</div>
+                </div>
+            </div>
+
+            <div class="opening-category">
+                <h4 onclick="toggleCategory('sicilian')">🔥 Sicilian Defense</h4>
+                <div class="opening-lines" id="sicilian-lines">
+                    <div class="opening-line" data-opening="sicilian" data-line="najdorf">Najdorf Variation</div>
+                    <div class="opening-line" data-opening="sicilian" data-line="dragon">Dragon Variation</div>
+                    <div class="opening-line" data-opening="sicilian" data-line="accelerated">Accelerated Dragon</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chess Board Section -->
+        <div class="board-section">
+            <h1>Interactive Chess Board</h1>
+            
+            <div id="chessboard" style="width: 400px; margin: 0 auto;"></div>
+
+            <div class="controls">
+                <button onclick="resetGame()">New Game</button>
+                <button onclick="flipBoard()">Flip Board</button>
+                <button onclick="undoMove()" id="undoBtn">Undo Move</button>
+                <button onclick="playOpening()" id="playBtn" disabled>Play Opening</button>
+            </div>
+
+            <div class="status" id="status">White to move</div>
+            
+            <div class="game-info" id="gameInfo"></div>
+            
+            <div class="move-history" id="moveHistory">
+                <strong>Move History:</strong><br>
+                <span id="moves">Game started</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies - jQuery and Chessboard.js from CDN, Chess.js as module -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    
+    <!-- Load our chess game logic as ES module -->
+    <script type="module" src="chess.js"></script>
+</body>
+</html>
+

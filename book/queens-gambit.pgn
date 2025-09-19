@@ -1,0 +1,36 @@
+[Event "Queen's Gambit - Declined"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "D53"]
+[Opening "Queen's Gambit Declined"]
+[Variation "Orthodox Defense"]
+
+1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 Nbd7 7. Rc1 c6 8. Bd3 dxc4 9. Bxc4 Nd5 10. Bxe7 Qxe7 *
+
+[Event "Queen's Gambit - Accepted"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "D20"]
+[Opening "Queen's Gambit Accepted"]
+
+1. d4 d5 2. c4 dxc4 3. Nf3 Nf6 4. e3 e6 5. Bxc4 c5 6. O-O a6 7. Qe2 b5 8. Bb3 Bb7 9. Rd1 Nbd7 10. Nc3 *
+
+[Event "Queen's Gambit - Slav Defense"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "D10"]
+[Opening "Slav Defense"]
+
+1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 dxc4 5. a4 Bf5 6. e3 e6 7. Bxc4 Bb4 8. O-O Nbd7 9. Qe2 Bg6 10. e4 *

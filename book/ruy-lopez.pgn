@@ -1,0 +1,38 @@
+[Event "Ruy Lopez - Main Line"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "C84"]
+[Opening "Ruy Lopez"]
+[Variation "Closed Defense"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 *
+
+[Event "Ruy Lopez - Berlin Defense"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "C65"]
+[Opening "Ruy Lopez"]
+[Variation "Berlin Defense"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. O-O Nxe4 5. d4 Nd6 6. Bxc6 dxc6 7. dxe5 Nf5 8. Qxd8+ Kxd8 9. Nc3 Ke8 10. h3 *
+
+[Event "Ruy Lopez - Morphy Defense"]
+[Site "Opening Book"]
+[Date "2025.09.19"]
+[Round "?"]
+[White "Book"]
+[Black "Book"]
+[Result "*"]
+[ECO "C78"]
+[Opening "Ruy Lopez"]
+[Variation "Morphy Defense"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O b5 6. Bb3 Bc5 7. c3 d6 8. d4 Bb6 9. Re1 O-O 10. Nbd2 *
