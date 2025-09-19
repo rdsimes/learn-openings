@@ -1,11 +1,13 @@
 import { Chess } from './node_modules/chess.js/dist/esm/chess.js';
-import { openingBook, openingNames, lineNames } from './openingBook.js';
+import { initializeOpeningBook, openingNames, getOpeningBook, getLineNames } from './openingBook.js';
 
 // Global variables accessible to all functions
 let selectedOpening = null;
 let selectedLine = null;
 let game = null;
 let board = null;
+let openingBook = {};
+let lineNames = {};
 
 // Update game status
 function updateStatus() {
@@ -90,7 +92,7 @@ function undoMove() {
 }
 
 // Wait for DOM to be ready (since we can't use jQuery in modules easily)
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check if required dependencies are available
     if (typeof $ === 'undefined') {
         console.error('jQuery not found. Make sure it is loaded.');
@@ -105,6 +107,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize chess game and board
     game = new Chess();
     board = null;
+
+    // Load opening book from PGN files
+    try {
+        console.log('Initializing opening book...');
+        openingBook = await initializeOpeningBook();
+        lineNames = getLineNames();
+        console.log(openingBook);
+        console.log(lineNames);
+        
+        
+        // Update the UI to reflect the loaded variations
+        updateOpeningMenu();
+    } catch (error) {
+        console.error('Failed to initialize opening book:', error);
+        document.getElementById('status').textContent = 'Error: Could not load opening book from PGN files';
+        document.getElementById('playBtn').disabled = true;
+    }
 
     // Prevent dragging pieces when it's not the player's turn
     function onDragStart(source, piece, position, orientation) {
@@ -165,12 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.playOpening = playOpening;
     window.toggleCategory = toggleCategory;
 
-    // Add event listeners for opening selection
-    document.querySelectorAll('.opening-line').forEach(line => {
-        line.addEventListener('click', function() {
-            selectOpening(this.dataset.opening, this.dataset.line, this);
-        });
-    });
+    // Note: Event listeners for opening selection are now added dynamically in updateOpeningMenu()
 });
 
 // Toggle opening category expansion
@@ -198,7 +212,7 @@ function selectOpening(opening, line, element) {
     
     // Update status using imported constants
     document.getElementById('gameInfo').textContent = 
-        `Selected: ${openingNames[opening]} - ${lineNames[line]}`;
+        `Selected: ${openingNames[opening]} - ${lineNames[line] || line}`;
 }
 
 // Play the selected opening
@@ -262,4 +276,30 @@ function playOpening() {
     
     // Start playing moves
     setTimeout(playNextMove, 500);
+}
+
+// Update the opening menu based on loaded data
+function updateOpeningMenu() {
+    Object.keys(openingBook).forEach(openingKey => {
+        const linesContainer = document.getElementById(openingKey + '-lines');
+        if (linesContainer) {
+            // Clear existing lines
+            linesContainer.innerHTML = '';
+            
+            // Add lines from the loaded opening book
+            Object.keys(openingBook[openingKey]).forEach(lineKey => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'opening-line';
+                lineDiv.setAttribute('data-opening', openingKey);
+                lineDiv.setAttribute('data-line', lineKey);
+                lineDiv.textContent = lineNames[lineKey] || lineKey;
+                
+                lineDiv.addEventListener('click', function() {
+                    selectOpening(this.dataset.opening, this.dataset.line, this);
+                });
+                
+                linesContainer.appendChild(lineDiv);
+            });
+        }
+    });
 }
