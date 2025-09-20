@@ -14,6 +14,8 @@ export class OpeningManager {
         this.isStartingTest = false;
         this.testMoves = [];
         this.currentTestMoveIndex = 0;
+        this.voicesLoaded = false;
+        this.preferredVoice = null;
     }
 
     async initialize() {
@@ -22,6 +24,9 @@ export class OpeningManager {
             this.openingBook = await initializeOpeningBook();
             this.lineNames = getLineNames();
             
+            // Initialize speech voices
+            this.initializeVoices();
+            
             this.updateOpeningMenu();
             console.log('🎯 OpeningManager: Initialization complete');
             return true;
@@ -29,6 +34,42 @@ export class OpeningManager {
             console.error('Failed to initialize opening manager:', error);
             this.uiManager.showError('Could not load opening book from PGN files');
             return false;
+        }
+    }
+
+    initializeVoices() {
+        if ('speechSynthesis' in window) {
+            // Load voices
+            const loadVoices = () => {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    this.voicesLoaded = true;
+                    
+                    // Find preferred UK English female voice
+                    this.preferredVoice = voices.find(voice => 
+                        voice.lang.includes('en-GB') && 
+                        (voice.name.toLowerCase().includes('female') || 
+                         voice.name.toLowerCase().includes('woman') ||
+                         voice.name.toLowerCase().includes('karen') ||
+                         voice.name.toLowerCase().includes('kate'))
+                    ) || voices.find(voice => 
+                        voice.lang.includes('en-GB')
+                    ) || voices.find(voice => 
+                        voice.name.toLowerCase().includes('female') ||
+                        voice.name.toLowerCase().includes('woman')
+                    );
+                    
+                    if (this.preferredVoice) {
+                        console.log(`Selected voice: ${this.preferredVoice.name} (${this.preferredVoice.lang})`);
+                    }
+                }
+            };
+            
+            // Try to load voices immediately
+            loadVoices();
+            
+            // Also listen for the voiceschanged event
+            window.speechSynthesis.onvoiceschanged = loadVoices;
         }
     }
 
@@ -120,6 +161,9 @@ export class OpeningManager {
         // Update UI to show opening is being played
         this.uiManager.setStatus('Playing opening...');
         
+        // Announce the start of the opening
+        this.speakOpeningStart();
+        
         try {
             await this.playOpeningMoves();
         } catch (error) {
@@ -127,6 +171,27 @@ export class OpeningManager {
             this.uiManager.setStatus('Error playing opening');
         } finally {
             this.isPlaying = false;
+        }
+    }
+
+    speakOpeningStart() {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance();
+            const openingName = openingNames[this.selectedOpening] || this.selectedOpening;
+            const lineName = this.lineNames[this.selectedLine] || this.selectedLine;
+            
+            utterance.text = `Playing ${openingName}, ${lineName}`;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.8;
+            utterance.lang = 'en-GB';
+            
+            // Use the preferred voice
+            if (this.preferredVoice) {
+                utterance.voice = this.preferredVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
         }
     }
 
@@ -243,18 +308,36 @@ export class OpeningManager {
         for (let moveIndex = 0; moveIndex < moveList.length; moveIndex++) {
             const movePair = moveList[moveIndex].trim().split(/\s+/);
             
+            // Collect moves for this pair
+            const movePairMoves = [];
+            
             // Play white move
             if (movePair[0]) {
-                await this.playMove(movePair[0], 'white');
+                const whiteMove = this.chessBoardManager.makeMove(movePair[0]);
+                if (whiteMove) {
+                    movePairMoves.push(whiteMove.san);
+                    console.log(`Played white move: ${whiteMove.san}`);
+                }
                 await this.delay(400);
             }
             
             // Play black move
             if (movePair[1]) {
-                await this.playMove(movePair[1], 'black');
-                if (moveIndex < moveList.length - 1) {
-                    await this.delay(800);
+                const blackMove = this.chessBoardManager.makeMove(movePair[1]);
+                if (blackMove) {
+                    movePairMoves.push(blackMove.san);
+                    console.log(`Played black move: ${blackMove.san}`);
                 }
+            }
+            
+            // Speak the move pair and wait for completion
+            if (movePairMoves.length > 0) {
+                await this.speakMovePair(movePairMoves, moveIndex + 1);
+            }
+            
+            // Pause between move pairs (except for the last one)
+            if (moveIndex < moveList.length - 1) {
+                await this.delay(800);
             }
         }
         
@@ -263,17 +346,130 @@ export class OpeningManager {
         this.uiManager.setStatus(
             `Opening complete - ${game.turn() === 'w' ? 'White' : 'Black'} to move`
         );
+        
+        // Announce completion
+        this.speakOpeningComplete(game);
     }
 
-    async playMove(moveNotation, color) {
-        try {
-            const move = this.chessBoardManager.makeMove(moveNotation);
-            if (move) {
-                console.log(`Played ${color} move: ${move.san}`);
+    speakOpeningComplete(game) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance();
+            const nextPlayer = game.turn() === 'w' ? 'White' : 'Black';
+            
+            utterance.text = `Opening complete. ${nextPlayer} to move.`;
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 0.8;
+            utterance.lang = 'en-GB';
+            
+            // Use the preferred voice
+            if (this.preferredVoice) {
+                utterance.voice = this.preferredVoice;
             }
-        } catch (error) {
-            console.error(`Error playing ${color} move:`, moveNotation, error);
+            
+            // Add a small delay before speaking the completion
+            setTimeout(() => {
+                window.speechSynthesis.speak(utterance);
+            }, 500);
         }
+    }
+
+    async speakMovePair(moves, moveNumber) {
+        return new Promise((resolve) => {
+            // Check if speech synthesis is supported
+            if ('speechSynthesis' in window) {
+                // Create utterance
+                const utterance = new SpeechSynthesisUtterance();
+                
+                // Format the move pair for speaking (without move numbers)
+                const spokenMoves = moves.map(move => this.formatMoveForSpeech(move)).join(', ');
+                utterance.text = spokenMoves;
+                
+                // Set speech properties for UK English female voice
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                utterance.lang = 'en-GB'; // UK English
+                
+                // Use the pre-loaded preferred voice
+                if (this.preferredVoice) {
+                    utterance.voice = this.preferredVoice;
+                    console.log(`Using voice: ${this.preferredVoice.name}`);
+                } else {
+                    // Fallback: try to find a voice now
+                    const voices = window.speechSynthesis.getVoices();
+                    const ukFemaleVoice = voices.find(voice => 
+                        voice.lang.includes('en-GB') && 
+                        (voice.name.toLowerCase().includes('female') ||
+                         voice.name.toLowerCase().includes('woman'))
+                    ) || voices.find(voice => 
+                        voice.lang.includes('en-GB')
+                    );
+                    
+                    if (ukFemaleVoice) {
+                        utterance.voice = ukFemaleVoice;
+                        console.log(`Using fallback voice: ${ukFemaleVoice.name}`);
+                    }
+                }
+                
+                // Set up event handler for when speech ends
+                utterance.onend = () => {
+                    console.log(`Finished speaking: ${utterance.text}`);
+                    resolve();
+                };
+                
+                utterance.onerror = () => {
+                    console.log('Speech synthesis error');
+                    resolve(); // Still resolve to prevent hanging
+                };
+                
+                // Speak the move pair
+                window.speechSynthesis.speak(utterance);
+                
+                console.log(`Speaking: ${utterance.text}`);
+            } else {
+                console.log('Speech synthesis not supported in this browser');
+                resolve(); // Resolve immediately if speech not supported
+            }
+        });
+    }
+
+    formatMoveForSpeech(moveNotation) {
+        // Convert chess notation to spoken format (without unnecessary details)
+        let spokenMove = moveNotation;
+        
+        // Replace common chess notation with spoken equivalents
+        spokenMove = spokenMove.replace(/O-O-O/g, 'castles queenside');
+        spokenMove = spokenMove.replace(/O-O/g, 'castles kingside');
+        spokenMove = spokenMove.replace(/\+/g, ' check');
+        spokenMove = spokenMove.replace(/#/g, ' checkmate');
+        spokenMove = spokenMove.replace(/x/g, ' takes ');
+        spokenMove = spokenMove.replace(/=/g, ' promotes to ');
+        
+        // Handle piece moves - only add piece name if it's not a pawn move
+        if (/^[NBRQK]/.test(spokenMove)) {
+            // Check for disambiguation (like Nbd7, Nge5, N1f3, etc.)
+            const hasDisambiguation = /^[NBRQK][a-h1-8]/.test(moveNotation);
+            
+            if (hasDisambiguation) {
+                // Keep disambiguation for clarity (e.g., "Knight b d7")
+                spokenMove = spokenMove.replace(/^N([a-h1-8])/, 'Knight $1 ');
+                spokenMove = spokenMove.replace(/^B([a-h1-8])/, 'Bishop $1 ');
+                spokenMove = spokenMove.replace(/^R([a-h1-8])/, 'Rook $1 ');
+                spokenMove = spokenMove.replace(/^Q([a-h1-8])/, 'Queen $1 ');
+                spokenMove = spokenMove.replace(/^K([a-h1-8])/, 'King $1 ');
+            } else {
+                // Simple piece moves without disambiguation
+                spokenMove = spokenMove.replace(/^N/, 'Knight ');
+                spokenMove = spokenMove.replace(/^B/, 'Bishop ');
+                spokenMove = spokenMove.replace(/^R/, 'Rook ');
+                spokenMove = spokenMove.replace(/^Q/, 'Queen ');
+                spokenMove = spokenMove.replace(/^K/, 'King ');
+            }
+        }
+        // For pawn moves (no piece letter), just say the move as is
+        
+        return spokenMove.trim();
     }
 
     parseMoveString(moves) {
