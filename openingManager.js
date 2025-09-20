@@ -10,6 +10,9 @@ export class OpeningManager {
         this.selectedOpening = null;
         this.selectedLine = null;
         this.isPlaying = false;
+        this.isTestMode = false;
+        this.testMoves = [];
+        this.currentTestMoveIndex = 0;
     }
 
     async initialize() {
@@ -76,6 +79,7 @@ export class OpeningManager {
         
         // Update UI
         this.uiManager.enablePlayButton();
+        this.uiManager.enableTestButton();
         this.uiManager.setGameInfo(
             `Selected: ${openingNames[opening]} - ${this.lineNames[line] || line}`
         );
@@ -91,8 +95,8 @@ export class OpeningManager {
     }
 
     resetBoardTitle() {
-        // Don't reset title if we're in the middle of playing an opening
-        if (this.isPlaying) {
+        // Don't reset title if we're in the middle of playing an opening or in test mode
+        if (this.isPlaying || this.isTestMode) {
             return;
         }
         
@@ -123,6 +127,78 @@ export class OpeningManager {
         } finally {
             this.isPlaying = false;
         }
+    }
+
+    async testOpening() {
+        if (!this.selectedOpening || !this.selectedLine || this.isPlaying || this.isTestMode) {
+            return;
+        }
+
+        this.isTestMode = true;
+        this.currentTestMoveIndex = 0;
+        
+        // Reset the game first
+        this.chessBoardManager.reset();
+        
+        // Parse the opening moves
+        const moves = this.openingBook[this.selectedOpening][this.selectedLine];
+        this.testMoves = this.parseMovesForTest(moves);
+        
+        // Update UI to show test mode
+        this.uiManager.setStatus(`Test Mode: Play ${this.testMoves[0]} (move 1 of ${this.testMoves.length})`);
+        this.uiManager.setGameInfo(`Testing: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
+        
+        // Enable user interaction
+        this.chessBoardManager.enableUserMoves();
+        
+        console.log('Test mode started. Expected moves:', this.testMoves);
+    }
+
+    parseMovesForTest(moves) {
+        const moveList = this.parseMoveString(moves);
+        const allMoves = [];
+        
+        for (const movePair of moveList) {
+            const moves = movePair.trim().split(/\s+/);
+            if (moves[0]) allMoves.push(moves[0]); // White move
+            if (moves[1]) allMoves.push(moves[1]); // Black move
+        }
+        
+        return allMoves;
+    }
+
+    handleTestMove(move) {
+        if (!this.isTestMode) return true; // Not in test mode, allow move
+        
+        const expectedMove = this.testMoves[this.currentTestMoveIndex];
+        
+        if (move.san === expectedMove || move.from + move.to === expectedMove) {
+            // Correct move!
+            this.currentTestMoveIndex++;
+            
+            if (this.currentTestMoveIndex >= this.testMoves.length) {
+                // Test completed successfully
+                this.uiManager.setStatus('🎉 Perfect! You completed the opening correctly!');
+                this.uiManager.setGameInfo(`Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
+                this.isTestMode = false;
+            } else {
+                // Show next expected move
+                const nextMove = this.testMoves[this.currentTestMoveIndex];
+                this.uiManager.setStatus(`✅ Correct! Next: ${nextMove} (move ${this.currentTestMoveIndex + 1} of ${this.testMoves.length})`);
+            }
+            return true; // Allow the move
+        } else {
+            // Wrong move
+            this.uiManager.setStatus(`❌ Wrong move! Expected: ${expectedMove}. Try again.`);
+            return false; // Reject the move
+        }
+    }
+
+    exitTestMode() {
+        this.isTestMode = false;
+        this.currentTestMoveIndex = 0;
+        this.testMoves = [];
+        this.uiManager.setStatus('Test mode ended');
     }
 
     async playOpeningMoves() {

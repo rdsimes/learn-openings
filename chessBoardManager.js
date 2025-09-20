@@ -6,6 +6,7 @@ export class ChessBoardManager {
         this.game = null;
         this.board = null;
         this.config = null;
+        this.openingManager = null; // Reference to opening manager for test mode
     }
 
     async initialize(boardElementId) {
@@ -55,6 +56,13 @@ export class ChessBoardManager {
             // Illegal move
             if (move === null) return 'snapback';
 
+            // Check with opening manager if in test mode
+            if (this.openingManager && !this.openingManager.handleTestMove(move)) {
+                // Move was rejected by test mode, undo it
+                this.game.undo();
+                return 'snapback';
+            }
+
             // Notify of move made (could be enhanced with events)
             this.onMoveCompleted?.(move);
             return true;
@@ -72,6 +80,12 @@ export class ChessBoardManager {
     reset() {
         this.game = new Chess();
         this.board.position('start');
+        
+        // Exit test mode if active
+        if (this.openingManager && this.openingManager.isTestMode) {
+            this.openingManager.exitTestMode();
+        }
+        
         this.onGameStateChanged?.();
         this.onGameReset?.();
     }
@@ -117,6 +131,22 @@ export class ChessBoardManager {
 
     isGameOver() {
         return this.game.isGameOver();
+    }
+
+    // Method to set opening manager reference
+    setOpeningManager(openingManager) {
+        this.openingManager = openingManager;
+    }
+
+    // Enable/disable user moves
+    enableUserMoves() {
+        this.config.draggable = true;
+        this.board.config.draggable = true;
+    }
+
+    disableUserMoves() {
+        this.config.draggable = false;
+        this.board.config.draggable = false;
     }
 
     // Event handlers (can be set from outside)

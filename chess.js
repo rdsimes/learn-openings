@@ -28,6 +28,9 @@ class ChessApplication {
 
             // Connect board reset event to opening manager
             this.chessBoardManager.onGameReset = () => this.openingManager.resetBoardTitle();
+            
+            // Set opening manager reference in board manager for test mode
+            this.chessBoardManager.setOpeningManager(this.openingManager);
 
             // Make functions globally available for onclick handlers
             this.exposeGlobalFunctions();
@@ -56,6 +59,7 @@ class ChessApplication {
         window.flipBoard = () => this.chessBoardManager.flip();
         window.undoMove = () => this.chessBoardManager.undo();
         window.playOpening = () => this.openingManager.playOpening();
+        window.testOpening = () => this.openingManager.testOpening();
         window.toggleCategory = (categoryId) => this.openingManager.toggleCategory(categoryId);
     }
 }

@@ -13,7 +13,8 @@ export class ChessUIManager {
             moves: document.getElementById('moves'),
             moveHistory: document.getElementById('moveHistory'),
             undoBtn: document.getElementById('undoBtn'),
-            playBtn: document.getElementById('playBtn')
+            playBtn: document.getElementById('playBtn'),
+            testBtn: document.getElementById('testBtn')
         };
     }
 
@@ -120,8 +121,17 @@ export class ChessUIManager {
         this.elements.playBtn.disabled = true;
     }
 
+    enableTestButton() {
+        this.elements.testBtn.disabled = false;
+    }
+
+    disableTestButton() {
+        this.elements.testBtn.disabled = true;
+    }
+
     showError(message) {
         this.setStatus(`Error: ${message}`);
         this.disablePlayButton();
+        this.disableTestButton();
     }
 }
