@@ -104,6 +104,12 @@ function parsePGNContent(pgnContent) {
             else if (key.includes('declined')) key = 'declined';
             else if (key.includes('accepted')) key = 'accepted';
             else if (key.includes('slav')) key = 'slav';
+            else if (key.includes('main') || key.includes('mainline')) key = 'main';
+            else if (key.includes('sacrifice') || key.includes('bishop')) key = 'sacrifice';
+            else if (key.includes('steinitz') || key.includes('gambit')) key = 'steinitz';
+            else if (key.includes('torre')) key = 'torre';
+            else if (key.includes('dutch')) key = 'dutch';
+            else if (key.includes('kingsin') || key.includes('indian')) key = 'indian';
             else if (key === '' || key.length < 2) key = 'main';
             
             console.log(`  🔑 Generated key: "${key}" for variation: "${variationName}"`);
@@ -129,7 +135,9 @@ export async function loadOpeningBook() {
         'italian': 'italian-game.pgn',
         'ruylopez': 'ruy-lopez.pgn',
         'queens': 'queens-gambit.pgn',
-        'sicilian': 'sicilian-defense.pgn'
+        'sicilian': 'sicilian-defense.pgn',
+        'vienna': 'vienna.pgn',
+        'jobava': 'jobava.pgn'
     };
     
     console.log('📁 PGN files to load:', pgnFiles);
@@ -151,7 +159,9 @@ export const openingNames = {
     italian: 'Italian Game',
     ruylopez: 'Ruy Lopez',
     queens: "Queen's Gambit",
-    sicilian: 'Sicilian Defense'
+    sicilian: 'Sicilian Defense',
+    vienna: 'Vienna Game',
+    jobava: 'Jobava London'
 };
 
 // Function to generate line names from variation keys
@@ -175,7 +185,12 @@ export function generateLineNames(openingBook) {
         'najdorf': 'Najdorf Variation',
         'dragon': 'Dragon Variation',
         'accelerated': 'Accelerated Dragon',
-        'main': 'Main Line'
+        'main': 'Main Line',
+        'sacrifice': 'Bishop Sacrifice',
+        'steinitz': 'Steinitz Gambit',
+        'torre': 'Torre Attack',
+        'dutch': 'vs Dutch Defense',
+        'indian': "vs King's Indian"
     };
     
     console.log('📝 Available name mappings:', nameMap);
