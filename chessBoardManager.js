@@ -81,8 +81,8 @@ export class ChessBoardManager {
         this.game = new Chess();
         this.board.position('start');
         
-        // Exit test mode if active
-        if (this.openingManager && this.openingManager.isTestMode) {
+        // Only exit test mode if we're not starting a new test
+        if (this.openingManager && this.openingManager.isTestMode && !this.openingManager.isStartingTest) {
             this.openingManager.exitTestMode();
         }
         

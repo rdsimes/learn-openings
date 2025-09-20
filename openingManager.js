@@ -11,6 +11,7 @@ export class OpeningManager {
         this.selectedLine = null;
         this.isPlaying = false;
         this.isTestMode = false;
+        this.isStartingTest = false;
         this.testMoves = [];
         this.currentTestMoveIndex = 0;
     }
@@ -135,10 +136,14 @@ export class OpeningManager {
         }
 
         this.isTestMode = true;
+        this.isStartingTest = true; // Flag to prevent reset from exiting test mode
         this.currentTestMoveIndex = 0;
         
         // Reset the game first
         this.chessBoardManager.reset();
+        
+        // Clear the flag after reset
+        this.isStartingTest = false;
         
         // Parse the opening moves
         const moves = this.openingBook[this.selectedOpening][this.selectedLine];
@@ -152,27 +157,56 @@ export class OpeningManager {
         this.chessBoardManager.enableUserMoves();
         
         console.log('Test mode started. Expected moves:', this.testMoves);
+        console.log('isTestMode:', this.isTestMode);
     }
 
     parseMovesForTest(moves) {
+        console.log('Parsing moves for test:', moves);
         const moveList = this.parseMoveString(moves);
+        console.log('Move list after parsing:', moveList);
         const allMoves = [];
         
         for (const movePair of moveList) {
             const moves = movePair.trim().split(/\s+/);
-            if (moves[0]) allMoves.push(moves[0]); // White move
-            if (moves[1]) allMoves.push(moves[1]); // Black move
+            console.log('Processing move pair:', moves);
+            if (moves[0]) {
+                console.log('Adding white move:', moves[0]);
+                allMoves.push(moves[0]); // White move
+            }
+            if (moves[1]) {
+                console.log('Adding black move:', moves[1]);
+                allMoves.push(moves[1]); // Black move
+            }
         }
         
+        console.log('Final test moves array:', allMoves);
         return allMoves;
     }
 
     handleTestMove(move) {
-        if (!this.isTestMode) return true; // Not in test mode, allow move
+        console.log('handleTestMove called with:', move);
+        
+        if (!this.isTestMode) {
+            console.log('Not in test mode, allowing move');
+            return true; // Not in test mode, allow move
+        }
         
         const expectedMove = this.testMoves[this.currentTestMoveIndex];
+        console.log('Test move check:', {
+            expectedMove,
+            actualMove: move.san,
+            actualMoveFrom: move.from,
+            actualMoveTo: move.to,
+            actualMoveNotation: move.from + move.to
+        });
         
-        if (move.san === expectedMove || move.from + move.to === expectedMove) {
+        // Try multiple comparison methods
+        const isCorrect = move.san === expectedMove || 
+                         move.from + move.to === expectedMove ||
+                         move.from + move.to === expectedMove.toLowerCase() ||
+                         move.san === expectedMove.replace(/[+#]/g, ''); // Remove check/checkmate symbols
+        
+        if (isCorrect) {
             // Correct move!
             this.currentTestMoveIndex++;
             
@@ -189,13 +223,14 @@ export class OpeningManager {
             return true; // Allow the move
         } else {
             // Wrong move
-            this.uiManager.setStatus(`❌ Wrong move! Expected: ${expectedMove}. Try again.`);
+            this.uiManager.setStatus(`❌ Wrong move! Expected: ${expectedMove}, got: ${move.san}. Try again.`);
             return false; // Reject the move
         }
     }
 
     exitTestMode() {
         this.isTestMode = false;
+        this.isStartingTest = false;
         this.currentTestMoveIndex = 0;
         this.testMoves = [];
         this.uiManager.setStatus('Test mode ended');
