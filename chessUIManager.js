@@ -37,11 +37,18 @@ export class ChessUIManager {
              this.chessBoardManager.openingManager.justCompletedTest)) {
             return; // Keep the test mode status message
         }
+
+        // Don't override status if no opening is selected (keep welcome message)
+        if (this.chessBoardManager.openingManager && 
+            !this.chessBoardManager.openingManager.getSelectedOpening()) {
+            return;
+        }
         
         const game = this.chessBoardManager.getGame();
         let status = this.generateStatusText(game);
         
         this.elements.status.textContent = status;
+        this.setStatusClass(''); // Clear status classes for normal game status
         
         // Update game info
         let gameInfo = `Move: ${Math.ceil(game.history().length / 2)}`;
@@ -112,8 +119,64 @@ export class ChessUIManager {
         this.elements.status.textContent = text;
     }
 
+    setStatusClass(className) {
+        // Remove existing status classes
+        this.elements.status.classList.remove('success', 'error', 'test-mode');
+        
+        // Add new class if provided
+        if (className) {
+            this.elements.status.classList.add(className);
+        }
+    }
+
+    setStatusClass(className) {
+        // Remove existing status classes
+        this.elements.status.classList.remove('success', 'error', 'test-mode');
+        
+        // Add new class if provided
+        if (className) {
+            this.elements.status.classList.add(className);
+        }
+    }
+
     setGameInfo(text) {
         this.elements.gameInfo.textContent = text;
+    }
+
+    setProgressInfo(text) {
+        // Add progress indicator to game info
+        const progressElement = document.querySelector('.progress-indicator') || 
+                               this.createProgressElement();
+        progressElement.textContent = text;
+    }
+
+    createProgressElement() {
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'progress-indicator';
+        this.elements.gameInfo.parentNode.insertBefore(progressDiv, this.elements.gameInfo.nextSibling);
+        return progressDiv;
+    }
+
+    setProgressInfo(text) {
+        // Add progress indicator to game info
+        const progressElement = document.querySelector('.progress-indicator') || 
+                               this.createProgressElement();
+        progressElement.textContent = text;
+    }
+
+    createProgressElement() {
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'progress-indicator';
+        this.elements.gameInfo.parentNode.insertBefore(progressDiv, this.elements.gameInfo.nextSibling);
+        return progressDiv;
+    }
+
+    updatePlayButtonText(text) {
+        this.elements.playBtn.textContent = text;
+    }
+
+    updateTestButtonText(text) {
+        this.elements.testBtn.textContent = text;
     }
 
     enablePlayButton() {

@@ -59,7 +59,15 @@ class ChessApplication {
         // Expose methods for HTML onclick handlers
         window.flipBoard = () => this.chessBoardManager.flip();
         window.playOpening = () => this.openingManager.playOpening();
-        window.testOpening = () => this.openingManager.testOpening();
+        window.testOpening = () => {
+            // Handle test mode toggle
+            if (this.openingManager.isTestMode) {
+                this.openingManager.exitTestMode();
+                this.chessBoardManager.reset();
+            } else {
+                this.openingManager.testOpening();
+            }
+        };
         window.toggleCategory = (categoryId) => this.openingManager.toggleCategory(categoryId);
     }
 }

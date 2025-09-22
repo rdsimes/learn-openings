@@ -62,10 +62,21 @@ export class OpeningManager {
         this.domUtils.addClass(lineDiv, 'opening-line');
         this.domUtils.setAttribute(lineDiv, 'data-opening', openingKey);
         this.domUtils.setAttribute(lineDiv, 'data-line', lineKey);
+        this.domUtils.setAttribute(lineDiv, 'tabindex', '0'); // Make focusable
+        this.domUtils.setAttribute(lineDiv, 'role', 'button'); // Accessibility
         this.domUtils.setTextContent(lineDiv, this.lineNames[lineKey] || lineKey);
         
+        // Click handler
         this.domUtils.addEventListener(lineDiv, 'click', () => {
             this.selectOpening(openingKey, lineKey, lineDiv);
+        });
+        
+        // Keyboard handler
+        this.domUtils.addEventListener(lineDiv, 'keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                this.selectOpening(openingKey, lineKey, lineDiv);
+            }
         });
         
         return lineDiv;
@@ -77,22 +88,44 @@ export class OpeningManager {
             this.domUtils.removeClass(el, 'selected');
         });
         
+        // Remove previous category highlights
+        this.domUtils.querySelectorAll('.opening-category').forEach(cat => {
+            this.domUtils.removeClass(cat, 'has-selection');
+        });
+        
         // Add selection to clicked element
         this.domUtils.addClass(element, 'selected');
+        
+        // Highlight parent category using DOM utilities
+        const parentCategory = this.findParentCategory(element);
+        if (parentCategory) {
+            this.domUtils.addClass(parentCategory, 'has-selection');
+        }
         
         // Store selection
         this.selectedOpening = opening;
         this.selectedLine = line;
         
+        // Hide welcome state and selection prompt
+        this.hideWelcomeElements();
+        
+        // Show chess board
+        this.showChessBoard();
+        
         // Update board title
         this.updateBoardTitle(opening, line);
         
-        // Update UI
+        // Update UI with encouraging messages
         this.uiManager.enablePlayButton();
         this.uiManager.enableTestButton();
+        this.uiManager.setStatus(`✨ Great choice! Ready to learn ${openingNames[opening]}?`);
         this.uiManager.setGameInfo(
             `Selected: ${openingNames[opening]} - ${this.lineNames[line] || line}`
         );
+        
+        // Add progress indicator
+        const moveCount = this.getMoveCount(opening, line);
+        this.uiManager.setProgressInfo(`This opening has ${moveCount} moves to learn`);
     }
 
     updateBoardTitle(opening, line) {
@@ -112,7 +145,12 @@ export class OpeningManager {
         
         const titleElement = this.domUtils.querySelector('.board-section h1');
         if (titleElement) {
-            this.domUtils.setTextContent(titleElement, 'Interactive Chess Board');
+            this.domUtils.setTextContent(titleElement, 'Learn Openings');
+        }
+        
+        // Show welcome elements when no opening is selected
+        if (!this.selectedOpening) {
+            this.showWelcomeElements();
         }
     }
 
@@ -127,7 +165,12 @@ export class OpeningManager {
         this.chessBoardManager.reset();
         
         // Update UI to show opening is being played
-        this.uiManager.setStatus('Playing opening...');
+        this.uiManager.setStatus('🎬 Playing opening moves... Watch and learn!');
+        this.uiManager.setStatusClass('');
+        
+        // Update button text during playback
+        this.uiManager.updatePlayButtonText('⏸️ Playing...');
+        this.uiManager.disableTestButton();
         
         // Announce the start of the opening
         const openingName = openingNames[this.selectedOpening] || this.selectedOpening;
@@ -141,6 +184,9 @@ export class OpeningManager {
             this.uiManager.setStatus('Error playing opening');
         } finally {
             this.isPlaying = false;
+            // Reset button text
+            this.uiManager.updatePlayButtonText('▶️ Watch Opening');
+            this.uiManager.enableTestButton();
         }
     }
 
@@ -164,8 +210,13 @@ export class OpeningManager {
         this.testMoves = this.parseMovesForTest(moves);
         
         // Update UI to show test mode
-        this.uiManager.setStatus(`Test Mode: Play ${this.testMoves[0]} (move 1 of ${this.testMoves.length})`);
+        this.uiManager.setStatus(`🎯 Test Mode: Play ${this.testMoves[0]} (move 1 of ${this.testMoves.length})`);
+        this.uiManager.setStatusClass('test-mode');
         this.uiManager.setGameInfo(`Testing: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
+        
+        // Update button states
+        this.uiManager.disablePlayButton();
+        this.uiManager.updateTestButtonText('🔄 Exit Test');
         
         // Enable user interaction
         this.chessBoardManager.enableUserMoves();
@@ -227,23 +278,30 @@ export class OpeningManager {
             if (this.currentTestMoveIndex >= this.testMoves.length) {
                 // Test completed successfully
                 this.uiManager.setStatus('🎉 Perfect! You completed the opening correctly!');
-                this.uiManager.setGameInfo(`Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
+                this.uiManager.setStatusClass('success');
+                this.uiManager.setGameInfo(`🏆 Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
                 this.isTestMode = false;
                 this.justCompletedTest = true;
+                
+                // Reset button states
+                this.uiManager.enablePlayButton();
+                this.uiManager.updateTestButtonText('🧠 Test Your Knowledge');
                 
                 // Clear the flag after a short delay to allow status to be preserved
                 setTimeout(() => {
                     this.justCompletedTest = false;
-                }, 500);
+                }, 3000);
             } else {
                 // Show moves remaining instead of revealing the next move
                 const movesRemaining = this.testMoves.length - this.currentTestMoveIndex;
                 this.uiManager.setStatus(`✅ Correct! ${movesRemaining} moves to go`);
+                this.uiManager.setStatusClass('success');
             }
             return true; // Allow the move
         } else {
             // Wrong move
             this.uiManager.setStatus(`❌ Wrong move! Expected: ${expectedMove}, got: ${move.san}. Try again.`);
+            this.uiManager.setStatusClass('error');
             return false; // Reject the move
         }
     }
@@ -254,7 +312,12 @@ export class OpeningManager {
         this.currentTestMoveIndex = 0;
         this.testMoves = [];
         this.justCompletedTest = false;
+        
+        // Reset UI state
         this.uiManager.setStatus('Test mode ended');
+        this.uiManager.setStatusClass('');
+        this.uiManager.enablePlayButton();
+        this.uiManager.updateTestButtonText('🧠 Test Your Knowledge');
     }
 
     compareMovesWithDisambiguation(actualMove, expectedMove) {
@@ -302,7 +365,6 @@ export class OpeningManager {
             const expectedSuffix = reverseExpectedMatch[3] || '';
             
             const actualPiece = reverseActualMatch[1];
-            const actualDisambiguation = reverseActualMatch[2];
             const actualDestination = reverseActualMatch[3];
             const actualSuffix = reverseActualMatch[4] || '';
             
@@ -360,7 +422,13 @@ export class OpeningManager {
         // Opening playback complete
         const game = this.chessBoardManager.getGame();
         this.uiManager.setStatus(
-            `Opening complete - ${game.turn() === 'w' ? 'White' : 'Black'} to move`
+            `🎉 Opening complete! ${game.turn() === 'w' ? 'White' : 'Black'} to move next`
+        );
+        this.uiManager.setStatusClass('success');
+        
+        // Encourage testing
+        this.uiManager.setGameInfo(
+            `💡 Great! Now try the Test Mode to practice what you learned!`
         );
         
         // Announce completion
@@ -381,6 +449,81 @@ export class OpeningManager {
         if (lines) {
             this.domUtils.toggleClass(lines, 'expanded');
         }
+    }
+
+    hideWelcomeElements() {
+        const welcomeState = this.domUtils.getElementById('welcomeState');
+        const selectionPrompt = this.domUtils.getElementById('selectionPrompt');
+        
+        if (welcomeState) {
+            this.domUtils.addClass(welcomeState, 'hidden');
+        }
+        if (selectionPrompt) {
+            this.domUtils.addClass(selectionPrompt, 'hidden');
+        }
+    }
+
+    showChessBoard() {
+        const chessboard = this.domUtils.getElementById('chessboard');
+        if (chessboard) {
+            this.domUtils.removeClass(chessboard, 'hidden');
+        }
+    }
+
+    getMoveCount(opening, line) {
+        if (!this.openingBook[opening] || !this.openingBook[opening][line]) {
+            return 0;
+        }
+        const moves = this.openingBook[opening][line];
+        const moveList = this.parseMoveString(moves);
+        let count = 0;
+        for (const movePair of moveList) {
+            const pairMoves = movePair.trim().split(/\s+/);
+            count += pairMoves.filter(move => move && move.trim()).length;
+        }
+        return count;
+    }
+
+    findParentCategory(element) {
+        // Walk up the DOM tree to find the parent .opening-category element
+        let current = element;
+        while (current && current.parentNode) {
+            current = current.parentNode;
+            if (current.classList && current.classList.contains('opening-category')) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    // Helper methods for UI enhancement
+    hideWelcomeElements() {
+        const welcomeState = this.domUtils.getElementById('welcomeState');
+        const selectionPrompt = this.domUtils.getElementById('selectionPrompt');
+        
+        if (welcomeState) {
+            this.domUtils.addClass(welcomeState, 'hidden');
+        }
+        if (selectionPrompt) {
+            this.domUtils.addClass(selectionPrompt, 'hidden');
+        }
+    }
+    
+    showWelcomeElements() {
+        const welcomeState = this.domUtils.getElementById('welcomeState');
+        const selectionPrompt = this.domUtils.getElementById('selectionPrompt');
+        
+        if (welcomeState) {
+            this.domUtils.removeClass(welcomeState, 'hidden');
+        }
+        if (selectionPrompt) {
+            this.domUtils.removeClass(selectionPrompt, 'hidden');
+        }
+    }
+    
+    getMoveCount(opening, line) {
+        const moves = this.openingBook[opening][line];
+        return this.parseMovesForTest(moves).length;
     }
 
     // Getters

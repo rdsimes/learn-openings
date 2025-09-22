@@ -30,6 +30,57 @@
             max-width: 1200px;
         }
 
+        .welcome-state {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px dashed #667eea;
+            text-align: center;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+
+        .welcome-state.hidden {
+            opacity: 0;
+            pointer-events: none;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        #chessboard.hidden {
+            opacity: 0;
+            pointer-events: none;
+            max-height: 0;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .welcome-state h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .welcome-state p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .welcome-arrow {
+            font-size: 48px;
+            color: #667eea;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
         .opening-menu {
             width: 300px;
             text-align: left;
@@ -37,6 +88,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .opening-menu h3 {
@@ -44,6 +96,99 @@
             color: #4a4a4a;
             border-bottom: 2px solid #667eea;
             padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .selection-prompt {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        }
+
+        .selection-prompt.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .chess-container {
+                flex-direction: column;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .opening-menu {
+                width: 100%;
+                order: 2;
+            }
+
+            .board-section {
+                order: 1;
+            }
+
+            #chessboard {
+                width: 300px !important;
+            }
+
+            .welcome-arrow {
+                transform: rotate(90deg);
+                font-size: 36px;
+            }
+
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 10px 16px;
+                margin: 0;
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            .welcome-arrow,
+            .selection-prompt {
+                animation: none;
+            }
+            
+            * {
+                transition: none !important;
+            }
+        }
+
+        /* Focus indicators for keyboard navigation */
+        .opening-line:focus,
+        .opening-category h4:focus,
+        button:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .opening-line.selected {
+                border: 2px solid white;
+            }
+            
+            .status.success {
+                border-width: 2px;
+            }
         }
 
         .opening-category {
@@ -55,14 +200,23 @@
             color: #5a5a5a;
             font-size: 16px;
             cursor: pointer;
-            padding: 8px;
+            padding: 12px;
             background: #e9ecef;
-            border-radius: 5px;
-            transition: background 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            border-left: 4px solid transparent;
         }
 
         .opening-category h4:hover {
             background: #dee2e6;
+            border-left-color: #667eea;
+            transform: translateX(3px);
+        }
+
+        .opening-category.has-selection h4 {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
         }
 
         .opening-lines {
@@ -77,33 +231,48 @@
         }
 
         .opening-line {
-            padding: 5px 10px;
+            padding: 8px 12px;
             margin: 5px 0;
             cursor: pointer;
-            border-radius: 3px;
-            transition: background 0.2s ease;
+            border-radius: 5px;
+            transition: all 0.2s ease;
             font-size: 14px;
             border-left: 3px solid transparent;
+            position: relative;
         }
 
         .opening-line:hover {
             background: #e3f2fd;
             border-left-color: #2196f3;
+            transform: translateX(5px);
         }
 
         .opening-line.selected {
             background: #667eea;
             color: white;
             border-left-color: #4a5ed7;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .opening-line.selected::after {
+            content: "✓";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
         }
 
         .board-section {
             flex: 1;
             text-align: center;
+            position: relative;
         }
 
         #chessboard {
             margin: 20px auto;
+            position: relative;
         }
 
         .controls {
@@ -114,21 +283,44 @@
             background: #667eea;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 0 5px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            margin: 0 8px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: background 0.2s ease;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        button.primary:hover:not(:disabled) {
+            background: linear-gradient(45deg, #5a67d8, #6a4190);
+        }
+
+        button.success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        button.success:hover:not(:disabled) {
+            background: linear-gradient(45deg, #218838, #1ea085);
         }
 
         .status {
@@ -136,12 +328,46 @@
             font-size: 18px;
             font-weight: bold;
             color: #4a4a4a;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .status.test-mode {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
         }
 
         .game-info {
             margin-top: 15px;
             font-size: 14px;
             color: #666;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+
+        .progress-indicator {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: bold;
         }
 
         h1 {
@@ -167,6 +393,10 @@
         <!-- Opening Selection Menu -->
         <div class="opening-menu">
             <h3>📚 Opening Book</h3>
+            
+            <div class="selection-prompt" id="selectionPrompt">
+                🎯 Choose an opening to start learning!
+            </div>
             
             <div class="opening-category">
                 <h4 onclick="toggleCategory('italian')">🇮🇹 Italian Game</h4>
@@ -215,17 +445,33 @@
         <div class="board-section">
             <h1>Learn Openings</h1>
             
-            <div id="chessboard" style="width: 400px; margin: 0 auto;"></div>
+            <!-- Welcome overlay -->
+            <div class="welcome-state" id="welcomeState">
+                <h2>🏁 Ready to Learn Chess Openings?</h2>
+                <p>Select an opening from the menu to get started!<br>
+                   You can watch the moves being played or test your knowledge.</p>
+                <div class="welcome-arrow">👈</div>
+            </div>
+            
+            <div id="chessboard" class="hidden" style="width: 400px; margin: 0 auto;"></div>
 
             <div class="controls">
-                <button onclick="flipBoard()">Flip Board</button>
-                <button onclick="playOpening()" id="playBtn" disabled>Play Opening</button>
-                <button onclick="testOpening()" id="testBtn" disabled>Test Mode</button>
+                <button onclick="flipBoard()" title="Change board perspective between White and Black">
+                    🔄 Flip Board
+                </button>
+                <button onclick="playOpening()" id="playBtn" class="primary" disabled 
+                        title="Watch the opening moves being played automatically">
+                    ▶️ Watch Opening
+                </button>
+                <button onclick="testOpening()" id="testBtn" class="success" disabled
+                        title="Practice the opening moves yourself with guidance">
+                    🧠 Test Your Knowledge
+                </button>
             </div>
 
-            <div class="status" id="status">White to move</div>
+            <div class="status" id="status">Select an opening to begin</div>
             
-            <div class="game-info" id="gameInfo"></div>
+            <div class="game-info" id="gameInfo">Choose an opening and variation from the menu</div>
             
             <div class="move-history" id="moveHistory">
                 <strong>Move History:</strong><br>

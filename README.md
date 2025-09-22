@@ -2,6 +2,8 @@
 
 An interactive chess opening trainer that helps you learn and practice chess openings through visual demonstration and interactive testing.
 
+Built with Claude Sonnet 4 / Copilot.
+
 ## 🚀 Try It Now
 
 **[Play Learn Openings](https://rdsimes.github.io/learn-openings/)**

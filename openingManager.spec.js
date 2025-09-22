@@ -69,6 +69,30 @@ class MockUIManager {
     enableTestButton() {
         this.testButtonEnabled = true
     }
+    
+    setStatusClass() {
+        // Mock implementation
+    }
+    
+    setProgressInfo() {
+        // Mock implementation
+    }
+    
+    updatePlayButtonText() {
+        // Mock implementation
+    }
+    
+    updateTestButtonText() {
+        // Mock implementation
+    }
+    
+    disablePlayButton() {
+        // Mock implementation
+    }
+    
+    disableTestButton() {
+        // Mock implementation
+    }
 }
 
 class MockSpeechManager {
@@ -185,7 +209,11 @@ describe('OpeningManager', () => {
         })
 
         it('should select an opening and update UI correctly', () => {
+            // Create a proper DOM structure with parent-child relationship
+            const categoryElement = mockDOM.createElement('div')
+            categoryElement.classList.add('opening-category')
             const lineElement = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement, lineElement)
             
             openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
             
@@ -198,7 +226,11 @@ describe('OpeningManager', () => {
         })
 
         it('should update board title when opening is selected', () => {
+            // Create a proper DOM structure with parent-child relationship
+            const categoryElement = mockDOM.createElement('div')
+            categoryElement.classList.add('opening-category')
             const lineElement = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement, lineElement)
             const titleElement = mockDOM.getMockElement('.board-section h1')
             
             openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
@@ -207,8 +239,16 @@ describe('OpeningManager', () => {
         })
 
         it('should remove selection from other elements', () => {
+            // Create proper DOM structure with parent-child relationships
+            const categoryElement1 = mockDOM.createElement('div')
+            categoryElement1.classList.add('opening-category')
             const element1 = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement1, element1)
+            
+            const categoryElement2 = mockDOM.createElement('div')
+            categoryElement2.classList.add('opening-category')
             const element2 = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement2, element2)
             
             // Add elements to mock DOM
             mockDOM.addMockElement('element1', element1)
@@ -233,7 +273,12 @@ describe('OpeningManager', () => {
         beforeEach(async () => {
             await openingManager.initialize()
             
+            // Create proper DOM structure with parent-child relationship
+            const categoryElement = mockDOM.createElement('div')
+            categoryElement.classList.add('opening-category')
             const lineElement = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement, lineElement)
+            
             openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
             await openingManager.testOpening()
         })
@@ -329,7 +374,12 @@ describe('OpeningManager', () => {
         beforeEach(async () => {
             await openingManager.initialize()
             
+            // Create proper DOM structure with parent-child relationship
+            const categoryElement = mockDOM.createElement('div')
+            categoryElement.classList.add('opening-category')
             const lineElement = mockDOM.createElement('div')
+            mockDOM.appendChild(categoryElement, lineElement)
+            
             openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
         })
 
