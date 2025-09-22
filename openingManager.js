@@ -211,7 +211,8 @@ export class OpeningManager {
         const isCorrect = move.san === expectedMove || 
                          move.from + move.to === expectedMove ||
                          move.from + move.to === expectedMove.toLowerCase() ||
-                         move.san === expectedMove.replace(/[+#]/g, ''); // Remove check/checkmate symbols
+                         move.san === expectedMove.replace(/[+#]/g, '') || // Remove check/checkmate symbols
+                         this.compareMovesWithDisambiguation(move.san, expectedMove);
         
         if (isCorrect) {
             // Correct move!
@@ -241,6 +242,66 @@ export class OpeningManager {
         this.currentTestMoveIndex = 0;
         this.testMoves = [];
         this.uiManager.setStatus('Test mode ended');
+    }
+
+    compareMovesWithDisambiguation(actualMove, expectedMove) {
+        // Handle disambiguation cases where expected move has disambiguation but actual doesn't
+        // Example: Expected "Ncb4" vs Actual "Nb4"
+        
+        // If both moves are the same, they match
+        if (actualMove === expectedMove) {
+            return true;
+        }
+        
+        // Check if expected move has disambiguation that actual move doesn't
+        const expectedRegex = /^([NBRQK])([a-h1-8])([a-h][1-8])([+#]?)$/;
+        const actualRegex = /^([NBRQK])([a-h][1-8])([+#]?)$/;
+        
+        const expectedMatch = expectedMove.match(expectedRegex);
+        const actualMatch = actualMove.match(actualRegex);
+        
+        if (expectedMatch && actualMatch) {
+            const expectedPiece = expectedMatch[1];
+            const expectedDisambiguation = expectedMatch[2];
+            const expectedDestination = expectedMatch[3];
+            const expectedSuffix = expectedMatch[4] || '';
+            
+            const actualPiece = actualMatch[1];
+            const actualDestination = actualMatch[2];
+            const actualSuffix = actualMatch[3] || '';
+            
+            // Check if piece type and destination match
+            if (expectedPiece === actualPiece && 
+                expectedDestination === actualDestination &&
+                expectedSuffix === actualSuffix) {
+                console.log(`Disambiguation match: Expected ${expectedMove} matches actual ${actualMove}`);
+                return true;
+            }
+        }
+        
+        // Also handle the reverse case: actual has disambiguation, expected doesn't
+        const reverseExpectedMatch = expectedMove.match(actualRegex);
+        const reverseActualMatch = actualMove.match(expectedRegex);
+        
+        if (reverseExpectedMatch && reverseActualMatch) {
+            const expectedPiece = reverseExpectedMatch[1];
+            const expectedDestination = reverseExpectedMatch[2];
+            const expectedSuffix = reverseExpectedMatch[3] || '';
+            
+            const actualPiece = reverseActualMatch[1];
+            const actualDisambiguation = reverseActualMatch[2];
+            const actualDestination = reverseActualMatch[3];
+            const actualSuffix = reverseActualMatch[4] || '';
+            
+            if (expectedPiece === actualPiece && 
+                expectedDestination === actualDestination &&
+                expectedSuffix === actualSuffix) {
+                console.log(`Reverse disambiguation match: Expected ${expectedMove} matches actual ${actualMove}`);
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     async playOpeningMoves() {
