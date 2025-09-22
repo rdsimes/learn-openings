@@ -118,10 +118,13 @@ export class OpeningManager {
         // Update UI with encouraging messages
         this.uiManager.enablePlayButton();
         this.uiManager.enableTestButton();
-        this.uiManager.setStatus(`✨ Great choice! Ready to learn ${openingNames[opening]}?`);
+        this.uiManager.setStatus(`✨ ${openingNames[opening]} selected! Choose your learning mode below:`);
         this.uiManager.setGameInfo(
-            `Selected: ${openingNames[opening]} - ${this.lineNames[line] || line}`
+            `📖 ${this.lineNames[line] || line} variation selected. Click "Watch Opening" to see the moves demonstrated, or "Test Your Knowledge" to practice!`
         );
+        
+        // Ensure user moves are disabled until they choose a mode
+        this.chessBoardManager.disableUserMoves();
         
         // Add progress indicator
         const moveCount = this.getMoveCount(opening, line);
@@ -164,6 +167,9 @@ export class OpeningManager {
         // Reset the game first (title won't reset due to isPlaying flag)
         this.chessBoardManager.reset();
         
+        // Disable user moves during playback
+        this.chessBoardManager.disableUserMoves();
+        
         // Update UI to show opening is being played
         this.uiManager.setStatus('🎬 Playing opening moves... Watch and learn!');
         this.uiManager.setStatusClass('');
@@ -187,6 +193,8 @@ export class OpeningManager {
             // Reset button text
             this.uiManager.updatePlayButtonText('▶️ Watch Opening');
             this.uiManager.enableTestButton();
+            // Keep moves disabled after watching - user must choose test mode to interact
+            this.chessBoardManager.disableUserMoves();
         }
     }
 
@@ -279,9 +287,12 @@ export class OpeningManager {
                 // Test completed successfully
                 this.uiManager.setStatus('🎉 Perfect! You completed the opening correctly!');
                 this.uiManager.setStatusClass('success');
-                this.uiManager.setGameInfo(`🏆 Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
+                this.uiManager.setGameInfo(`🏆 Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}. Try another opening or watch this one again!`);
                 this.isTestMode = false;
                 this.justCompletedTest = true;
+                
+                // Disable moves after completion
+                this.chessBoardManager.disableUserMoves();
                 
                 // Reset button states
                 this.uiManager.enablePlayButton();
@@ -313,8 +324,11 @@ export class OpeningManager {
         this.testMoves = [];
         this.justCompletedTest = false;
         
+        // Disable user moves when exiting test mode
+        this.chessBoardManager.disableUserMoves();
+        
         // Reset UI state
-        this.uiManager.setStatus('Test mode ended');
+        this.uiManager.setStatus('Test mode ended - Choose "Watch Opening" or "Test Your Knowledge" to continue');
         this.uiManager.setStatusClass('');
         this.uiManager.enablePlayButton();
         this.uiManager.updateTestButtonText('🧠 Test Your Knowledge');
@@ -422,13 +436,13 @@ export class OpeningManager {
         // Opening playback complete
         const game = this.chessBoardManager.getGame();
         this.uiManager.setStatus(
-            `🎉 Opening complete! ${game.turn() === 'w' ? 'White' : 'Black'} to move next`
+            `🎉 Opening demonstration complete! ${game.turn() === 'w' ? 'White' : 'Black'} to move next`
         );
         this.uiManager.setStatusClass('success');
         
         // Encourage testing
         this.uiManager.setGameInfo(
-            `💡 Great! Now try the Test Mode to practice what you learned!`
+            `💡 Now try "Test Your Knowledge" to practice the moves yourself, or select another opening!`
         );
         
         // Announce completion
@@ -467,6 +481,7 @@ export class OpeningManager {
         const chessboard = this.domUtils.getElementById('chessboard');
         if (chessboard) {
             this.domUtils.removeClass(chessboard, 'hidden');
+            // Keep disabled class - user must choose watch or test mode
         }
     }
 

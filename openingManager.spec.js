@@ -20,6 +20,7 @@ class MockChessBoardManager {
         this.resetCalled = false
         this.movesMade = []
         this.game = { turn: () => 'w' }
+        this.userMovesEnabled = false
     }
     
     reset() {
@@ -33,7 +34,11 @@ class MockChessBoardManager {
     }
     
     enableUserMoves() {
-        // Mock implementation
+        this.userMovesEnabled = true
+    }
+    
+    disableUserMoves() {
+        this.userMovesEnabled = false
     }
     
     getGame() {
@@ -222,7 +227,7 @@ describe('OpeningManager', () => {
             expect(mockUI.playButtonEnabled).toBe(true)
             expect(mockUI.testButtonEnabled).toBe(true)
             expect(lineElement.classList.contains('selected')).toBe(true)
-            expect(mockUI.gameInfo).toContain('Selected: Ruy Lopez - Main Line')
+            expect(mockUI.gameInfo).toContain('Main Line variation selected')
         })
 
         it('should update board title when opening is selected', () => {

@@ -20,7 +20,7 @@ export class ChessBoardManager {
         
         // Setup board configuration
         this.config = {
-            draggable: true,
+            draggable: false, // Start with dragging disabled
             position: 'start',
             onDragStart: this.onDragStart.bind(this),
             onDrop: this.onDrop.bind(this),
@@ -34,6 +34,9 @@ export class ChessBoardManager {
     }
 
     onDragStart(source, piece, position, orientation) {
+        // Do not allow moves if dragging is disabled
+        if (!this.config.draggable) return false;
+        
         // Do not pick up pieces if the game is over
         if (this.game.isGameOver()) return false;
 
@@ -80,6 +83,9 @@ export class ChessBoardManager {
     reset() {
         this.game = new Chess();
         this.board.position('start');
+        
+        // Disable user moves on reset
+        this.disableUserMoves();
         
         // Only exit test mode if we're not starting a new test
         if (this.openingManager && this.openingManager.isTestMode && !this.openingManager.isStartingTest) {
@@ -140,13 +146,27 @@ export class ChessBoardManager {
 
     // Enable/disable user moves
     enableUserMoves() {
-        this.config.draggable = true;
-        this.board.config.draggable = true;
+        if (this.config) {
+            this.config.draggable = true;
+        }
+        
+        // Remove disabled visual state
+        const boardElement = document.getElementById('chessboard');
+        if (boardElement) {
+            boardElement.classList.remove('disabled');
+        }
     }
 
     disableUserMoves() {
-        this.config.draggable = false;
-        this.board.config.draggable = false;
+        if (this.config) {
+            this.config.draggable = false;
+        }
+        
+        // Add disabled visual state
+        const boardElement = document.getElementById('chessboard');
+        if (boardElement) {
+            boardElement.classList.add('disabled');
+        }
     }
 
     // Event handlers (can be set from outside)
