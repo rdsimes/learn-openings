@@ -32,6 +32,12 @@ export class ChessUIManager {
     }
 
     updateStatus() {
+        // Don't override status during test mode
+        if (this.chessBoardManager.openingManager && 
+            this.chessBoardManager.openingManager.isTestMode) {
+            return; // Keep the test mode status message
+        }
+        
         const game = this.chessBoardManager.getGame();
         let status = this.generateStatusText(game);
         

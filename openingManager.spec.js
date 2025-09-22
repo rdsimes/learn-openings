@@ -9,7 +9,7 @@ vi.mock('./openingBook.js', async () => {
     return {
         ...actual,
         openingNames: {
-            'ruy-lopez': 'Ruy Lopez'
+            'ruylopez': 'Ruy Lopez'  // Use correct key without hyphens
         }
     }
 })
@@ -97,7 +97,7 @@ class MockSpeechManager {
 // Mock opening book loader
 const mockOpeningBookLoader = vi.fn(async () => {
     return {
-        'ruy-lopez': {
+        'ruylopez': {  // Use correct key without hyphens
             'main-line': '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6',
             'exchange': '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Bxc6'
         }
@@ -142,7 +142,7 @@ describe('OpeningManager', () => {
         it('should initialize successfully with valid dependencies', async () => {
             // Setup mock DOM elements
             const linesContainer = mockDOM.createElement('div')
-            mockDOM.addMockElement('ruy-lopez-lines', linesContainer)
+            mockDOM.addMockElement('ruylopez-lines', linesContainer)  // Use correct key
             
             const result = await openingManager.initialize()
             
@@ -176,7 +176,7 @@ describe('OpeningManager', () => {
         beforeEach(async () => {
             // Setup mock DOM elements
             const linesContainer = mockDOM.createElement('div')
-            mockDOM.addMockElement('ruy-lopez-lines', linesContainer)
+            mockDOM.addMockElement('ruylopez-lines', linesContainer)  // Use correct key
             
             const titleElement = mockDOM.createElement('h1')
             mockDOM.addMockElement('.board-section h1', titleElement)
@@ -187,9 +187,9 @@ describe('OpeningManager', () => {
         it('should select an opening and update UI correctly', () => {
             const lineElement = mockDOM.createElement('div')
             
-            openingManager.selectOpening('ruy-lopez', 'main-line', lineElement)
+            openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
             
-            expect(openingManager.getSelectedOpening()).toBe('ruy-lopez')
+            expect(openingManager.getSelectedOpening()).toBe('ruylopez')
             expect(openingManager.getSelectedLine()).toBe('main-line')
             expect(mockUI.playButtonEnabled).toBe(true)
             expect(mockUI.testButtonEnabled).toBe(true)
@@ -201,7 +201,7 @@ describe('OpeningManager', () => {
             const lineElement = mockDOM.createElement('div')
             const titleElement = mockDOM.getMockElement('.board-section h1')
             
-            openingManager.selectOpening('ruy-lopez', 'main-line', lineElement)
+            openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
             
             expect(titleElement.textContent).toBe('Ruy Lopez - Main Line')
         })
@@ -219,10 +219,10 @@ describe('OpeningManager', () => {
             querySelectorAllSpy.mockReturnValue([element1, element2])
             
             // Select first opening
-            openingManager.selectOpening('ruy-lopez', 'main-line', element1)
+            openingManager.selectOpening('ruylopez', 'main-line', element1)  // Use correct key
             
             // Select second opening
-            openingManager.selectOpening('ruy-lopez', 'exchange', element2)
+            openingManager.selectOpening('ruylopez', 'exchange', element2)  // Use correct key
             
             expect(element1.classList.contains('selected')).toBe(false)
             expect(element2.classList.contains('selected')).toBe(true)
@@ -234,7 +234,7 @@ describe('OpeningManager', () => {
             await openingManager.initialize()
             
             const lineElement = mockDOM.createElement('div')
-            openingManager.selectOpening('ruy-lopez', 'main-line', lineElement)
+            openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
             await openingManager.testOpening()
         })
 
@@ -300,7 +300,7 @@ describe('OpeningManager', () => {
     describe('DOM operations', () => {
         it('should use DOM utilities for all DOM operations', async () => {
             const linesContainer = mockDOM.createElement('div')
-            mockDOM.addMockElement('ruy-lopez-lines', linesContainer)
+            mockDOM.addMockElement('ruylopez-lines', linesContainer)  // Use correct key
             
             const createElementSpy = vi.spyOn(mockDOM, 'createElement')
             const setInnerHTMLSpy = vi.spyOn(mockDOM, 'setInnerHTML')
@@ -330,7 +330,7 @@ describe('OpeningManager', () => {
             await openingManager.initialize()
             
             const lineElement = mockDOM.createElement('div')
-            openingManager.selectOpening('ruy-lopez', 'main-line', lineElement)
+            openingManager.selectOpening('ruylopez', 'main-line', lineElement)  // Use correct key
         })
 
         it('should announce opening start when playing', async () => {

@@ -223,7 +223,6 @@ export class OpeningManager {
         if (isCorrect) {
             // Correct move!
             this.currentTestMoveIndex++;
-            
             if (this.currentTestMoveIndex >= this.testMoves.length) {
                 // Test completed successfully
                 this.uiManager.setStatus('🎉 Perfect! You completed the opening correctly!');
