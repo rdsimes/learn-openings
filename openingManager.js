@@ -16,6 +16,7 @@ export class OpeningManager {
         this.isStartingTest = false;
         this.testMoves = [];
         this.currentTestMoveIndex = 0;
+        this.justCompletedTest = false; // Flag to preserve completion message
         
         // Dependency injection for better testability
         this.speechManager = options.speechManager || new SpeechManager();
@@ -228,10 +229,16 @@ export class OpeningManager {
                 this.uiManager.setStatus('🎉 Perfect! You completed the opening correctly!');
                 this.uiManager.setGameInfo(`Test completed: ${openingNames[this.selectedOpening]} - ${this.lineNames[this.selectedLine]}`);
                 this.isTestMode = false;
+                this.justCompletedTest = true;
+                
+                // Clear the flag after a short delay to allow status to be preserved
+                setTimeout(() => {
+                    this.justCompletedTest = false;
+                }, 500);
             } else {
-                // Show next expected move
-                const nextMove = this.testMoves[this.currentTestMoveIndex];
-                this.uiManager.setStatus(`✅ Correct! Next: ${nextMove} (move ${this.currentTestMoveIndex + 1} of ${this.testMoves.length})`);
+                // Show moves remaining instead of revealing the next move
+                const movesRemaining = this.testMoves.length - this.currentTestMoveIndex;
+                this.uiManager.setStatus(`✅ Correct! ${movesRemaining} moves to go`);
             }
             return true; // Allow the move
         } else {
@@ -246,6 +253,7 @@ export class OpeningManager {
         this.isStartingTest = false;
         this.currentTestMoveIndex = 0;
         this.testMoves = [];
+        this.justCompletedTest = false;
         this.uiManager.setStatus('Test mode ended');
     }
 

@@ -32,9 +32,10 @@ export class ChessUIManager {
     }
 
     updateStatus() {
-        // Don't override status during test mode
+        // Don't override status during test mode or just after test completion
         if (this.chessBoardManager.openingManager && 
-            this.chessBoardManager.openingManager.isTestMode) {
+            (this.chessBoardManager.openingManager.isTestMode ||
+             this.chessBoardManager.openingManager.justCompletedTest)) {
             return; // Keep the test mode status message
         }
         

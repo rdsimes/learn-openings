@@ -253,7 +253,7 @@ describe('OpeningManager', () => {
             
             expect(result).toBe(true)
             expect(openingManager.currentTestMoveIndex).toBe(1)
-            expect(mockUI.status).toContain('✅ Correct!')
+            expect(mockUI.status).toBe('✅ Correct! 5 moves to go')
         })
 
         it('should reject incorrect moves in test mode', () => {
