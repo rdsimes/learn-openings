@@ -14,6 +14,7 @@ export class OpeningManager {
         this.isPlaying = false;
         this.isTestMode = false;
         this.isStartingTest = false;
+        this.shouldCancel = false; // Flag to cancel ongoing operations
         this.testMoves = [];
         this.currentTestMoveIndex = 0;
         this.justCompletedTest = false; // Flag to preserve completion message
@@ -83,6 +84,9 @@ export class OpeningManager {
     }
 
     selectOpening(opening, line, element) {
+        // Stop any current action (playing or testing) before selecting new opening
+        this.stopCurrentAction();
+        
         // Remove previous selection
         this.domUtils.querySelectorAll('.opening-line').forEach(el => {
             this.domUtils.removeClass(el, 'selected');
@@ -155,6 +159,35 @@ export class OpeningManager {
         if (!this.selectedOpening) {
             this.showWelcomeElements();
         }
+    }
+
+    // Stop any current action (playing or testing)
+    stopCurrentAction() {
+        // Set cancellation flag
+        this.shouldCancel = true;
+        
+        // Reset playing state
+        if (this.isPlaying) {
+            this.isPlaying = false;
+            this.uiManager.updatePlayButtonText('▶️ Watch Opening');
+            this.uiManager.enableTestButton();
+        }
+        
+        // Reset test mode
+        if (this.isTestMode) {
+            this.isTestMode = false;
+            this.isStartingTest = false;
+            this.currentTestMoveIndex = 0;
+            this.testMoves = [];
+            this.uiManager.updateTestButtonText('🧠 Test Your Knowledge');
+            this.uiManager.enablePlayButton();
+        }
+        
+        // Reset the board
+        this.chessBoardManager.reset();
+        
+        // Clear cancellation flag immediately since we've already reset everything
+        this.shouldCancel = false;
     }
 
     async playOpening() {
@@ -398,6 +431,12 @@ export class OpeningManager {
         const moveList = this.parseMoveString(moves);
         
         for (let moveIndex = 0; moveIndex < moveList.length; moveIndex++) {
+            // Check if we should cancel
+            if (this.shouldCancel) {
+                console.log('Playback cancelled');
+                return;
+            }
+            
             const movePair = moveList[moveIndex].trim().split(/\s+/);
             
             // Collect moves for this pair
@@ -411,6 +450,12 @@ export class OpeningManager {
                     console.log(`Played white move: ${whiteMove.san}`);
                 }
                 await this.delay(400);
+                
+                // Check cancellation after delay
+                if (this.shouldCancel) {
+                    console.log('Playback cancelled during white move delay');
+                    return;
+                }
             }
             
             // Play black move
@@ -422,6 +467,12 @@ export class OpeningManager {
                 }
             }
             
+            // Check cancellation before speech
+            if (this.shouldCancel) {
+                console.log('Playback cancelled before speech');
+                return;
+            }
+            
             // Speak the move pair and wait for completion
             if (movePairMoves.length > 0) {
                 await this.speechManager.speakMovePair(movePairMoves);
@@ -430,6 +481,12 @@ export class OpeningManager {
             // Pause between move pairs (except for the last one)
             if (moveIndex < moveList.length - 1) {
                 await this.delay(800);
+                
+                // Check cancellation after delay
+                if (this.shouldCancel) {
+                    console.log('Playback cancelled during move pair delay');
+                    return;
+                }
             }
         }
         
