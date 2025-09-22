@@ -12,7 +12,6 @@ export class ChessUIManager {
             gameInfo: document.getElementById('gameInfo'),
             moves: document.getElementById('moves'),
             moveHistory: document.getElementById('moveHistory'),
-            undoBtn: document.getElementById('undoBtn'),
             playBtn: document.getElementById('playBtn'),
             testBtn: document.getElementById('testBtn')
         };
@@ -48,9 +47,6 @@ export class ChessUIManager {
         let gameInfo = `Move: ${Math.ceil(game.history().length / 2)}`;
         if (game.isCheck()) gameInfo += ' | CHECK!';
         this.elements.gameInfo.textContent = gameInfo;
-        
-        // Update undo button state
-        this.elements.undoBtn.disabled = game.history().length === 0;
     }
 
     generateStatusText(game) {

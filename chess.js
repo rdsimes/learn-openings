@@ -57,9 +57,7 @@ class ChessApplication {
 
     exposeGlobalFunctions() {
         // Expose methods for HTML onclick handlers
-        window.resetGame = () => this.chessBoardManager.reset();
         window.flipBoard = () => this.chessBoardManager.flip();
-        window.undoMove = () => this.chessBoardManager.undo();
         window.playOpening = () => this.openingManager.playOpening();
         window.testOpening = () => this.openingManager.testOpening();
         window.toggleCategory = (categoryId) => this.openingManager.toggleCategory(categoryId);
