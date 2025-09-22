@@ -1,5 +1,5 @@
 // Chess board management class for better encapsulation and maintainability
-import { Chess } from './node_modules/chess.js/dist/esm/chess.js';
+import { Chess } from 'https://unpkg.com/chess.js@1.0.0-beta.6/dist/esm/chess.js';
 
 export class ChessBoardManager {
     constructor() {
