@@ -157,15 +157,19 @@ export class ChessBoardManager {
         }
     }
 
-    disableUserMoves() {
+    disableUserMoves(showOverlay = true) {
         if (this.config) {
             this.config.draggable = false;
         }
         
-        // Add disabled visual state
+        // Handle disabled visual state
         const boardElement = document.getElementById('chessboard');
         if (boardElement) {
-            boardElement.classList.add('disabled');
+            if (showOverlay) {
+                boardElement.classList.add('disabled');
+            } else {
+                boardElement.classList.remove('disabled');
+            }
         }
     }
 

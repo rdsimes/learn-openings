@@ -200,8 +200,8 @@ export class OpeningManager {
         // Reset the game first (title won't reset due to isPlaying flag)
         this.chessBoardManager.reset();
         
-        // Disable user moves during playback
-        this.chessBoardManager.disableUserMoves();
+        // Disable user moves during playback but don't show overlay since user is watching
+        this.chessBoardManager.disableUserMoves(false);
         
         // Update UI to show opening is being played
         this.uiManager.setStatus('🎬 Playing opening moves... Watch and learn!');

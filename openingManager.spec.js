@@ -37,7 +37,7 @@ class MockChessBoardManager {
         this.userMovesEnabled = true
     }
     
-    disableUserMoves() {
+    disableUserMoves(showOverlay = true) {
         this.userMovesEnabled = false
     }
     
