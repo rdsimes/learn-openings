@@ -121,6 +121,10 @@ class MockSpeechManager {
         this.completions.push(nextPlayer)
         return Promise.resolve()
     }
+    
+    cancelSpeech() {
+        // Mock implementation
+    }
 }
 
 // Mock opening book loader

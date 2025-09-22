@@ -104,6 +104,14 @@ export class SpeechManager {
         });
     }
 
+    // Cancel any ongoing speech synthesis
+    cancelSpeech() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            console.log('Speech synthesis cancelled');
+        }
+    }
+
     speakOpeningAnnouncement(openingName, lineName) {
         const text = `Playing ${openingName}, ${lineName}`;
         return this.speak(text, { rate: 0.9, pitch: 1.1 });

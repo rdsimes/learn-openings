@@ -166,6 +166,9 @@ export class OpeningManager {
         // Set cancellation flag
         this.shouldCancel = true;
         
+        // Cancel any ongoing speech synthesis
+        this.speechManager.cancelSpeech();
+        
         // Reset playing state
         if (this.isPlaying) {
             this.isPlaying = false;
