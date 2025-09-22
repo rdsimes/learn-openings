@@ -2,6 +2,10 @@
 
 An interactive chess opening trainer that helps you learn and practice chess openings through visual demonstration and interactive testing.
 
+## 🚀 Try It Now
+
+**[Play Learn Openings](https://rdsimes.github.io/learn-openings/)**
+
 ## 🎯 Features
 
 - **Interactive Chess Board** - Visual demonstration of opening moves
@@ -10,11 +14,7 @@ An interactive chess opening trainer that helps you learn and practice chess ope
 - **Speech Integration** - Audio announcements of moves and openings
 - **Clean Interface** - Modern, responsive design
 
-## 🚀 Live Demo
-
-Visit the live application: [Learn Openings on GitHub Pages](https://yourusername.github.io/repository-name)
-
-## 📚 Available Openings
+##  Available Openings
 
 - **🇮🇹 Italian Game** - Classical attacking opening
 - **🇪🇸 Ruy Lopez** - One of the oldest chess openings
@@ -44,95 +44,6 @@ Visit the live application: [Learn Openings on GitHub Pages](https://yourusernam
 - **Board Visualization**: Chessboard.js
 - **Testing**: Vitest framework
 - **Architecture**: Modern ES modules with dependency injection
-
-## 🚀 GitHub Pages Deployment
-
-### Prerequisites
-- GitHub account
-- Git installed locally
-
-### Deployment Steps
-
-1. **Clone/Fork this repository**
-   ```bash
-   git clone https://github.com/yourusername/learn-openings.git
-   cd learn-openings
-   ```
-
-2. **Push to your GitHub repository**
-   ```bash
-   git remote set-url origin https://github.com/yourusername/your-repo-name.git
-   git push -u origin main
-   ```
-
-3. **Enable GitHub Pages**
-   - Go to your repository on GitHub
-   - Navigate to **Settings** → **Pages**
-   - Under **Source**, select "Deploy from a branch"
-   - Choose **main** branch and **/ (root)** folder
-   - Click **Save**
-
-4. **Access your app**
-   - Your app will be available at: `https://yourusername.github.io/your-repo-name`
-   - Initial deployment may take a few minutes
-
-### GitHub Pages Compatibility ✅
-
-This application is perfectly suited for GitHub Pages because:
-- Static HTML/CSS/JS files only
-- No server-side dependencies
-- CDN-hosted external libraries
-- Modern ES modules support
-- No build process required
-
-## 💻 Local Development
-
-### Setup
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/learn-openings.git
-cd learn-openings
-
-# Install dependencies (for testing only)
-npm install
-
-# Start local server
-npm start
-
-# Run tests
-npm test
-```
-
-### Project Structure
-```
-learn-openings/
-├── index.html              # Main application page
-├── chess.js               # Application entry point
-├── openingManager.js      # Opening management logic
-├── chessBoardManager.js   # Chess board interactions
-├── chessUIManager.js      # UI state management
-├── domUtils.js           # DOM manipulation utilities
-├── config.js             # Configuration management
-├── book/                 # Opening book PGN files
-│   ├── italian-game.pgn
-│   ├── ruy-lopez.pgn
-│   └── ...
-├── img/                  # Chess piece images
-└── tests/               # Test files
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run specific test file
-npm test openingManager.spec.js
-```
 
 ## 🤝 Contributing
 
