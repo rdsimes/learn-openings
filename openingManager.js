@@ -1,9 +1,10 @@
 // Opening management for chess application
 import { initializeOpeningBook, openingNames, getLineNames } from './openingBook.js';
 import { SpeechManager } from './speechManager.js';
+import { DOMUtils } from './domUtils.js';
 
 export class OpeningManager {
-    constructor(chessBoardManager, uiManager) {
+    constructor(chessBoardManager, uiManager, options = {}) {
         this.chessBoardManager = chessBoardManager;
         this.uiManager = uiManager;
         this.openingBook = {};
@@ -15,14 +16,19 @@ export class OpeningManager {
         this.isStartingTest = false;
         this.testMoves = [];
         this.currentTestMoveIndex = 0;
-        this.speechManager = new SpeechManager();
+        
+        // Dependency injection for better testability
+        this.speechManager = options.speechManager || new SpeechManager();
+        this.domUtils = options.domUtils || new DOMUtils();
+        this.openingBookLoader = options.openingBookLoader || initializeOpeningBook;
+        this.lineNamesLoader = options.lineNamesLoader || getLineNames;
     }
 
     async initialize() {
         try {
             console.log('🎯 OpeningManager: Initializing...');
-            this.openingBook = await initializeOpeningBook();
-            this.lineNames = getLineNames();
+            this.openingBook = await this.openingBookLoader();
+            this.lineNames = this.lineNamesLoader();
             
             this.updateOpeningMenu();
             console.log('🎯 OpeningManager: Initialization complete');
@@ -36,28 +42,28 @@ export class OpeningManager {
 
     updateOpeningMenu() {
         Object.keys(this.openingBook).forEach(openingKey => {
-            const linesContainer = document.getElementById(openingKey + '-lines');
+            const linesContainer = this.domUtils.getElementById(openingKey + '-lines');
             if (linesContainer) {
                 // Clear existing lines
-                linesContainer.innerHTML = '';
+                this.domUtils.setInnerHTML(linesContainer, '');
                 
                 // Add lines from the loaded opening book
                 Object.keys(this.openingBook[openingKey]).forEach(lineKey => {
                     const lineDiv = this.createOpeningLineElement(openingKey, lineKey);
-                    linesContainer.appendChild(lineDiv);
+                    this.domUtils.appendChild(linesContainer, lineDiv);
                 });
             }
         });
     }
 
     createOpeningLineElement(openingKey, lineKey) {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'opening-line';
-        lineDiv.setAttribute('data-opening', openingKey);
-        lineDiv.setAttribute('data-line', lineKey);
-        lineDiv.textContent = this.lineNames[lineKey] || lineKey;
+        const lineDiv = this.domUtils.createElement('div');
+        this.domUtils.addClass(lineDiv, 'opening-line');
+        this.domUtils.setAttribute(lineDiv, 'data-opening', openingKey);
+        this.domUtils.setAttribute(lineDiv, 'data-line', lineKey);
+        this.domUtils.setTextContent(lineDiv, this.lineNames[lineKey] || lineKey);
         
-        lineDiv.addEventListener('click', () => {
+        this.domUtils.addEventListener(lineDiv, 'click', () => {
             this.selectOpening(openingKey, lineKey, lineDiv);
         });
         
@@ -66,12 +72,12 @@ export class OpeningManager {
 
     selectOpening(opening, line, element) {
         // Remove previous selection
-        document.querySelectorAll('.opening-line').forEach(el => {
-            el.classList.remove('selected');
+        this.domUtils.querySelectorAll('.opening-line').forEach(el => {
+            this.domUtils.removeClass(el, 'selected');
         });
         
         // Add selection to clicked element
-        element.classList.add('selected');
+        this.domUtils.addClass(element, 'selected');
         
         // Store selection
         this.selectedOpening = opening;
@@ -89,11 +95,11 @@ export class OpeningManager {
     }
 
     updateBoardTitle(opening, line) {
-        const titleElement = document.querySelector('.board-section h1');
+        const titleElement = this.domUtils.querySelector('.board-section h1');
         if (titleElement) {
             const openingDisplayName = openingNames[opening] || opening;
             const lineDisplayName = this.lineNames[line] || line;
-            titleElement.textContent = `${openingDisplayName} - ${lineDisplayName}`;
+            this.domUtils.setTextContent(titleElement, `${openingDisplayName} - ${lineDisplayName}`);
         }
     }
 
@@ -103,9 +109,9 @@ export class OpeningManager {
             return;
         }
         
-        const titleElement = document.querySelector('.board-section h1');
+        const titleElement = this.domUtils.querySelector('.board-section h1');
         if (titleElement) {
-            titleElement.textContent = 'Interactive Chess Board';
+            this.domUtils.setTextContent(titleElement, 'Interactive Chess Board');
         }
     }
 
@@ -364,9 +370,9 @@ export class OpeningManager {
     }
 
     toggleCategory(categoryId) {
-        const lines = document.getElementById(categoryId + '-lines');
+        const lines = this.domUtils.getElementById(categoryId + '-lines');
         if (lines) {
-            lines.classList.toggle('expanded');
+            this.domUtils.toggleClass(lines, 'expanded');
         }
     }
 

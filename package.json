@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "serve": "live-server"
+    "serve": "live-server",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@chrisoakman/chessboardjs": "^1.0.0",
@@ -17,8 +22,11 @@
     "rollup": "^4.50.2"
   },
   "devDependencies": {
+    "@vitest/ui": "^3.2.4",
+    "jsdom": "^27.0.0",
     "live-server": "^1.2.0",
-    "vite": "^7.1.6"
+    "vite": "^7.1.6",
+    "vitest": "^3.2.4"
   },
   "keywords": [
     "chess",

@@ -1,6 +1,7 @@
 import { ChessBoardManager } from './chessBoardManager.js';
 import { ChessUIManager } from './chessUIManager.js';
 import { OpeningManager } from './openingManager.js';
+import { createProductionConfig } from './config.js';
 
 // Application class for better organization
 class ChessApplication {
@@ -22,8 +23,9 @@ class ChessApplication {
             // Initialize UI manager
             this.uiManager = new ChessUIManager(this.chessBoardManager);
 
-            // Initialize opening manager
-            this.openingManager = new OpeningManager(this.chessBoardManager, this.uiManager);
+            // Initialize opening manager with production configuration
+            const openingConfig = createProductionConfig();
+            this.openingManager = new OpeningManager(this.chessBoardManager, this.uiManager, openingConfig);
             await this.openingManager.initialize();
 
             // Connect board reset event to opening manager
